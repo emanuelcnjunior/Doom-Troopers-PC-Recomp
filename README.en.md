@@ -8,3 +8,7 @@ assets, captures or save states to this repository. See [Portuguese README](READ
 for commands and [architecture](docs/architecture.md) for the incremental plan.
 Python 3.10+ and CMake 3.24+ are sufficient for the current tooling.
 No Genesis runtime or SNES dependency is included.
+
+An opt-in [boot experiment](docs/boot-experiment.md) now builds against a pinned
+local Genesis framework. Game boot fails at TRAP #1; no playable port or
+independent framebuffer/audio comparison has been validated.

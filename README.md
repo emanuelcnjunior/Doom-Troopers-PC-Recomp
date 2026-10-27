@@ -6,6 +6,10 @@ Pesquisa para um port Windows x64 de Mutant Chronicles: Doom Troopers,
 do Sega Genesis/Mega Drive, por recompilação 68000.
 **Etapa 0: ferramentas de validação. Não existe jogo executável, boot validado ou instalador.**
 
+O [primeiro experimento de execução](docs/boot-experiment.md) compila em Release,
+mas o boot falha em TRAP #1 no framework candidato. Há uma prova sintética
+de exceção/retorno nativos; a comparação independente do jogo segue pendente.
+
 A ROM não está incluída e nunca deve ser enviada ao GitHub. Forneça sua cópia
 local binária; a extensão `.md` não significa Markdown neste caso.
 
