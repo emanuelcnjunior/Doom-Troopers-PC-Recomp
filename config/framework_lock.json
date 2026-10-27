@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/mstan/segagenesisrecomp.git",
+  "commit": "f422ad52a04b9d253c0e9cbcdb3476aabd563ae8",
+  "submodules": {
+    "external/m68k-recomp-core": "7233852a6e45d8779b9dae8b29afd6b94d5231dc",
+    "external/z80-recomp-core": "4dfc5fc29fd67d23714126348e678e45952e9462",
+    "external/rbengine": "2a03e73693acee0fb78076ea058642c931bef12e",
+    "external/recomp-net": "2103d5eef111ce98846f017fb12d90f5cbe763e6"
+  },
+  "reference": {
+    "url": "https://www.retrodev.com/blastem/blastem-win64-1.0.0.zip",
+    "sha256": "fa9d988e2c7d0eb7fa2ccda8337918c46b9dcd3106222fbcdb0020505f121908",
+    "source_revision": "2b2a182f4522"
+  }
+}

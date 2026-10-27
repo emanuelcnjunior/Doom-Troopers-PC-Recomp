@@ -1,0 +1,12 @@
+# Experimental discovery only; no patches, yield substitutions or guessed RAM symbols.
+[game]
+output_prefix = "doom"
+jump_table_autodiscovery = true
+
+[ram_layout]
+initial_ssp = 0x00FFFFFE
+# All other fields remain unknown/zero. No scratch stack is asserted safe.
+
+[functions]
+# Observed reset, IRQ6 and IRQ4 vectors in the SHA-validated image.
+extra = [0x0568A8, 0x000200, 0x00020A]
