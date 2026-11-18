@@ -10,6 +10,7 @@
 *.rom
 *.ROM
 *.zip
+!/releases/Doom-Troopers-PC-Recomp-*-win64.zip
 *.7z
 *.sfc
 *.sms

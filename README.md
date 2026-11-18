@@ -17,6 +17,8 @@ Os testes mantêm a verificação estrita da pilha JSR habilitada.
 A pasta `build/` é uma saída local e não é versionada. Para testar sem
 compilar o projeto, baixe o ZIP para Windows x64 na página
 [Releases](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases).
+Uma cópia do mesmo pacote também fica versionada em
+[`releases/`](releases/Doom-Troopers-PC-Recomp-v0.1.0-prototype-win64.zip).
 Extraia todo o pacote, coloque sua ROM na mesma pasta com o nome
 `Doom Troopers (USA).md` e execute `Jogar.bat`. Também é possível arrastar a
 ROM sobre `Jogar.bat`.
