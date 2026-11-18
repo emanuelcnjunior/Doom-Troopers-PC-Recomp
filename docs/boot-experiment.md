@@ -122,3 +122,29 @@ Antes de executar mais quadros, validar contra oráculo independente: modo
 usuário/supervisor, pilhas, trace, IRQs aninhadas e custos/acessos de exceção.
 Resolver automação da referência (ou trocar por outra depurável com licença
 conferida). Nenhum dos dois caminhos está implementado neste experimento.
+
+## Continuação de 2026-11-18
+
+A ROM foi novamente validada pelo SHA-256 do manifesto. O experimento agora
+constrói um frame de exceção 68000 para TRAP e entrega o vetor ao dispatcher.
+Isso removeu o abort imediato do TRAP #1: o vetor 33 em `$000258` redefine a
+pilha e transfere controle para o próximo estado do jogo, sem RTE. O TRAP #0
+posterior retorna por RTE para `$0564EE`.
+
+Também foi corrigida na POC a contabilidade de `MOVE ..., (SP)+`, usada pelo
+jogo para descartar um retorno logo após esse TRAP #0. A divergência em
+`JSR $001026 -> $000FF6` vinha de uma segunda forma de captura do retorno:
+`$000F94` retira o endereço da pilha, monta seu frame e o recoloca antes do
+`RTS`. O gerador agora reconhece em tempo de execução se o retorno foi
+restaurado ou realmente convertido em ponteiro de código, preservando os dois
+comportamentos.
+
+Com `GENESIS_STRICT_JSR_STACK=1`, uma sessão de 600 frames terminou sem
+divergência, abort, instrução ilegal ou retorno prematuro do entry point. O
+frame 120 exibiu o logotipo SEGA e o frame 600 o logotipo Playmates. O handler
+de TRAP #1 instalado dinamicamente em `$05ED22` foi incluído como entrada
+validada. Ainda não houve comparação independente quadro a quadro e os
+contadores VBlank específicos do framework permanecem zerados; o resultado é
+um boot visual experimental, não uma recompilação completa validada.
+
+O suporte opcional aos cheats fornecidos está descrito em [cheats.md](cheats.md).

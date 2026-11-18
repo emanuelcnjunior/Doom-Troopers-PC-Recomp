@@ -17,4 +17,16 @@ git('-C', str(checkout), 'submodule', 'update', '--init', *lock['submodules'])
 for path, revision in lock['submodules'].items():
     if git('-C', str(checkout / path), 'rev-parse', 'HEAD') != revision:
         raise SystemExit(f'Submodule pin mismatch: {path}')
-print('Framework and infrastructure pins verified. No game disassembly requested.')
+
+patches = [
+    (checkout, root / 'patches/framework-trap-runtime.patch'),
+    (checkout / 'external/m68k-recomp-core', root / 'patches/m68k-core-doom-trap.patch'),
+]
+for target, patch in patches:
+    reverse = subprocess.run(['git', '-C', str(target), 'apply', '--reverse', '--check', str(patch)],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    if reverse.returncode == 0:
+        continue
+    subprocess.run(['git', '-C', str(target), 'apply', '--check', str(patch)], check=True)
+    subprocess.run(['git', '-C', str(target), 'apply', str(patch)], check=True)
+print('Framework pins and Doom Troopers experiment patches verified.')

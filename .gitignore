@@ -37,4 +37,5 @@ __pycache__/
 *.pyc
 .vs/
 .venv/
+.deps/
 CMakeUserPresets.json

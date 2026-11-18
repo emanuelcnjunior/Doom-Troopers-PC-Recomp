@@ -20,10 +20,12 @@ run.mkdir(parents=True, exist_ok=True)
 env = os.environ.copy()
 env.update(SDL_VIDEODRIVER='dummy', SDL_AUDIODRIVER='dummy',
            SDL_RENDER_DRIVER='software', GENESIS_RUN_DONE='1',
+           GENESIS_STRICT_JSR_STACK='1',
            GENESIS_FORCE_INTERP='1' if args.interpret else '0',
            GENESIS_SCREENSHOT_AT_EXIT=str(run / 'last.png'))
 command = [str(args.exe.resolve()), str(args.rom.resolve()), '--max-frames',
-           str(args.frames), '--hash-frames', '--turbo', '--no-launcher']
+           str(args.frames), '--hash-frames', str(args.frames), '--turbo',
+           '--no-launcher']
 with (run / 'stdout.log').open('w') as out, (run / 'stderr.log').open('w') as err:
     try:
         result = subprocess.run(command, cwd=run, env=env, stdout=out, stderr=err,

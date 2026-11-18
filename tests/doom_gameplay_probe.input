@@ -1,0 +1,22 @@
+# Controller-only route toward gameplay. Kept separate from the title probe so
+# every transition can be reproduced without RAM writes or save-state tricks.
+WAIT 1200
+PRESS START 2
+WAIT 400
+PRESS START 2
+WAIT 400
+SCREENSHOT doom_after_second_start.png
+PRESS START 2
+WAIT 600
+SCREENSHOT doom_gameplay_probe.png
+PRESS START 2
+WAIT 900
+SCREENSHOT doom_stage1_probe.png
+HOLD RIGHT
+WAIT 300
+PRESS B 2
+WAIT 600
+RELEASE RIGHT
+SCREENSHOT doom_stage1_movement.png
+WAIT 1
+EXIT 0

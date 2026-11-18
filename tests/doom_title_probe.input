@@ -1,0 +1,8 @@
+# Deterministic, controller-only probe: skip the opening sequence and observe
+# the first interactive state. No RAM writes or emulator-only state changes.
+WAIT 1200
+PRESS START 2
+WAIT 400
+SCREENSHOT doom_after_start.png
+WAIT 1
+EXIT 0

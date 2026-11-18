@@ -1,0 +1,70 @@
+diff --git a/profiles/genesis/code_generator.c b/profiles/genesis/code_generator.c
+index 5715dee..67ac43d 100644
+--- a/profiles/genesis/code_generator.c
++++ b/profiles/genesis/code_generator.c
+@@ -2028,9 +2028,15 @@ static void emit_instr(FILE *f, const GenesisRom *rom,
+         /* TRAP #N: vectors 0x20..0x2F. Hand off to the runtime; on Sonic
+          * this aborts loud since no trap is expected in steady state. */
+         emit_cycle_accounting(f, "  ", estimate_cycles(instr));
+-        fprintf(f, "  m68k_trap_vector(0x%02Xu); return;\n",
+-                0x20u + (unsigned)(instr->imm32 & 0xF));
+-        *skip_until_label = true;
++        if ((instr->imm32 & 0xFu) == 0u) {
++            fprintf(f, "  g_cpu.PC = 0x%06Xu; m68k_trap_vector(0x20u);\n",
++                    addr + instr->byte_length);
++        } else {
++            fprintf(f, "  g_cpu.PC = 0x%06Xu; m68k_trap_vector(0x%02Xu); return;\n",
++                    addr + instr->byte_length,
++                    0x20u + (unsigned)(instr->imm32 & 0xF));
++            *skip_until_label = true;
++        }
+         break;
+ 
+     /* ------------------------------------------------------------------ */
+@@ -2124,9 +2130,23 @@ static void emit_instr(FILE *f, const GenesisRom *rom,
+                 fprintf(f, "    recomp_call_addr(0x%06Xu);\n", instr->target_addr);
+             fprintf(f, "    g_split_sp_popped = _saved_split_sp_popped;\n");
+             fprintf(f, "  }\n");
+-            fprintf(f, "  g_rte_pending = 0; /* callee captured our return; handled here */\n");
+             emit_cycle_accounting(f, "  ", estimate_cycles(instr));
+-            fprintf(f, "  return; /* callee captured return addr: no pop, no fall-through */\n");
++            /* Some functions only borrow the return address: they pop it into
++             * a register, build a frame, then push it back before RTS.  Since
++             * the generated C RTS returns without consuming the emulated
++             * stack slot, recognize that restored address here, consume it,
++             * and dispatch the continuation explicitly.  Object-code-pointer
++             * thunks do not restore ret_addr and keep the legacy tail-transfer
++             * behavior below. */
++            fprintf(f, "  if (m68k_read32(g_cpu.A[7]) == 0x%06Xu) {\n", ret_addr);
++            fprintf(f, "    g_cpu.A[7] += 4; /* callee's restored RTS slot */\n");
++            fprintf(f, "    g_rte_pending = 0;\n");
++            fprintf(f, "    recomp_call_addr(0x%06Xu); /* captured return was restored */\n", ret_addr);
++            fprintf(f, "    g_rte_pending = 0; /* continuation unwound only its local frame */\n");
++            fprintf(f, "    return;\n");
++            fprintf(f, "  }\n");
++            fprintf(f, "  g_rte_pending = 0; /* callee repurposed our return */\n");
++            fprintf(f, "  return; /* callee captured return addr: no fall-through */\n");
+             *skip_until_label = true;
+             break;
+         }
+@@ -2551,6 +2571,8 @@ static void emit_instr(FILE *f, const GenesisRom *rom,
+             int stack_bytes = sz == M68K_SIZE_L ? 4 : 2;
+             if (src_ea == ((EA_An_POST << 3) | 7))
+                 fprintf(f, "  _sp_popped += %d; /* MOVE (SP)+ bytes */\n", stack_bytes);
++            if (dst_ea == ((EA_An_POST << 3) | 7))
++                fprintf(f, "  _sp_popped += %d; /* MOVE to (SP)+ bytes */\n", stack_bytes);
+             if (dst_ea == ((EA_An_PRE << 3) | 7))
+                 fprintf(f, "  _sp_popped -= %d; /* MOVE -(SP) bytes */\n", stack_bytes);
+         }
+@@ -4751,6 +4773,11 @@ bool codegen_emit(const GenesisRom *rom, const FunctionList *funcs,
+                     has_sp_adjust = 1;
+                     break;
+                 }
++                if (pre.mnemonic == MN_MOVE
++                        && pre.dst_ea == ((EA_An_POST << 3) | 7)) {
++                    has_sp_adjust = 1;
++                    break;
++                }
+                 if (pre.mnemonic == MN_PEA) {
+                     has_sp_adjust = 1;
+                     break;

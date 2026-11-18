@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 get_filename_component(ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
 set(RECOMP_ROOT "${ROOT}/local/segagenesisrecomp" CACHE PATH "Pinned experimental framework")
 set(DOOM_ROM "" CACHE FILEPATH "Local ROM; never copied or packaged")
+set(DOOM_CHEATS "" CACHE STRING "Comma-separated cheat indices; empty is clean")
 find_package(Python3 3.10 REQUIRED COMPONENTS Interpreter)
 if(DOOM_ROM)
 execute_process(COMMAND "${Python3_EXECUTABLE}" "${ROOT}/tools/rom_tool.py" validate "${DOOM_ROM}"
@@ -45,7 +46,7 @@ target_include_directories(TrapNativeProof PRIVATE "${TRAP_DIR}"
 add_test(NAME synthetic_native_trap_rte COMMAND TrapNativeProof "${TRAP_DIR}/fixture.bin")
 if(DOOM_ROM)
 set(GEN "${CMAKE_CURRENT_BINARY_DIR}/generated")
-set(GENERATED "${GEN}/doom_dispatch.c" "${GEN}/doom_layout.c")
+set(GENERATED "${GEN}/doom_dispatch.c" "${GEN}/doom_layout.c" "${GEN}/doom_cheats.c" "${GEN}/doom_cheats.h")
 foreach(N RANGE 0 31)
   if(N LESS 10)
     set(N "0${N}")
@@ -55,12 +56,14 @@ endforeach()
 add_custom_command(OUTPUT ${GENERATED}
   COMMAND "${Python3_EXECUTABLE}" "${ROOT}/tools/generate_boot.py" --rom "${DOOM_ROM}"
     --compiler "$<TARGET_FILE:GenesisRecomp>" --output "${GEN}"
+    --cheat-file "${ROOT}/config/doom_troopers_usa.cht" --cheats "${DOOM_CHEATS}"
   DEPENDS GenesisRecomp "${DOOM_ROM}" "${ROOT}/config/doom_boot.toml"
-    "${ROOT}/config/rom_identity.json" "${ROOT}/tools/generate_boot.py" "${ROOT}/tools/rom_tool.py"
+    "${ROOT}/config/rom_identity.json" "${ROOT}/config/doom_troopers_usa.cht"
+    "${ROOT}/tools/generate_boot.py" "${ROOT}/tools/rom_tool.py" "${ROOT}/tools/cheat_tool.py"
   VERBATIM)
 genesisrecomp_runner_sources(SOURCES TRACE ON REVERSE_DEBUG OFF)
 add_executable(DoomBootProbe ${SOURCES} ${GENERATED} doom_spec.c)
-target_include_directories(DoomBootProbe PRIVATE "${RUNNER}" "${RUNNER}/include"
+target_include_directories(DoomBootProbe PRIVATE "${GEN}" "${RUNNER}" "${RUNNER}/include"
   "${RUNNER}/video" "${RUNNER}/external/ymfm/src" "${RUNNER}/external/superzazu"
   "${RUNNER}/external/clowncommon" "${RECOMP_ROOT}/recompiler/src"
   "${SDLROOT}/include")

@@ -4,11 +4,13 @@
 
 Pesquisa para um port Windows x64 de Mutant Chronicles: Doom Troopers,
 do Sega Genesis/Mega Drive, por recompilação 68000.
-**Etapa 0: ferramentas de validação. Não existe jogo executável, boot validado ou instalador.**
+**Protótipo experimental: boot, menus e gameplay da fase 1 funcionam; ainda não
+há instalador nem validação completa contra um emulador de referência.**
 
-O [primeiro experimento de execução](docs/boot-experiment.md) compila em Release,
-mas o boot falha em TRAP #1 no framework candidato. Há uma prova sintética
-de exceção/retorno nativos; a comparação independente do jogo segue pendente.
+O [experimento de execução](docs/boot-experiment.md) compila em Release. O
+suporte local a TRAP/RTE e à pilha de chamadas permitiu percorrer de forma
+automatizada os logos, o título, a seleção de personagem, o briefing e a fase 1.
+Os testes mantêm a verificação estrita da pilha JSR habilitada.
 
 A ROM não está incluída e nunca deve ser enviada ao GitHub. Forneça sua cópia
 local binária; a extensão `.md` não significa Markdown neste caso.
@@ -21,8 +23,8 @@ cmake --build build --config Release
 ctest --test-dir build -C Release --output-on-failure
 ```
 
-Python 3.10+ e CMake 3.24+ bastam para esta etapa. O build verifica as ferramentas;
-não compila um runtime. `inspect` só processa a identidade aceita e imprime
+Python 3.10+, CMake 3.24+, Visual Studio 2022 e SDL2 do framework fixado são
+usados pelo protótipo. `inspect` só processa a identidade aceita e imprime
 metadados; não exporta código, gráficos ou áudio. Não versionar sua saída local.
 Outras extensões são aceitas somente se tamanho e SHA-256 coincidirem.
 

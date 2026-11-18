@@ -1,0 +1,40 @@
+diff --git a/runner/glue.c b/runner/glue.c
+index 8b24f51..29fd2f0 100644
+--- a/runner/glue.c
++++ b/runner/glue.c
+@@ -128,7 +128,34 @@ FIBER_NORETURN static void s_m68k_trap_die(unsigned vec, uint32_t pc, unsigned o
+     fflush(stderr);
+     abort();
+ }
+-void m68k_trap_vector(uint8_t vec)              { s_m68k_trap_die(vec, g_cpu.PC, 0); }
++void m68k_trap_vector(uint8_t vec)
++{
++    uint32_t return_pc = g_cpu.PC & 0xFFFFFFu;
++    uint16_t old_sr = g_cpu.SR;
++    uint32_t handler = m68k_read32((uint32_t)vec * 4u) & 0xFFFFFFu;
++    fprintf(stderr, "[TRAP] vec=%u return=%06X handler=%06X sp=%08X\n",
++            vec, return_pc, handler, g_cpu.A[7]);
++
++    /* MC68000 format-0 frame: SR at [SP], then the long return PC. */
++    if (!(old_sr & 0x2000u) || !handler || (handler & 1u))
++        s_m68k_trap_die(vec, return_pc, 0);
++    g_cpu.A[7] -= 4u;
++    m68k_write32(g_cpu.A[7], return_pc);
++    g_cpu.A[7] -= 2u;
++    m68k_write16(g_cpu.A[7], old_sr);
++    g_cpu.SR = (uint16_t)((old_sr | 0x2000u) & ~0xC000u);
++    g_cpu.PC = handler;
++    recomp_call_addr(handler);
++
++    /* A conventional handler reaches a generated RTE, which has already
++     * restored SR/PC. A non-returning handler owns control until its subtree
++     * returns. */
++    if (g_rte_pending) {
++        g_rte_pending = 0;
++        fprintf(stderr, "[TRAP] vec=%u RTE resume=%06X sp=%08X\n",
++                vec, g_cpu.PC & 0xFFFFFFu, g_cpu.A[7]);
++    }
++}
+ void m68k_illegal_trap(uint32_t pc, uint16_t op) {
+     int top4 = (op >> 12) & 0xF;
+     unsigned vec = (op == 0x4AFC) ? 4u :
