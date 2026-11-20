@@ -22,6 +22,7 @@ internal sealed class Launcher : Form
     private static readonly int[] Defaults = { 2, 0, 1 };
     private readonly ComboBox[] bindings = new ComboBox[3];
     private readonly TextBox rom = new TextBox();
+    private readonly CheckBox enhanced = new CheckBox();
     private readonly CheckBox fullscreen = new CheckBox();
     private readonly CheckBox[] cheats = new CheckBox[30];
     private const string RomHash = "d2fedd7f024571a4a30d241bca2d66fcd5db60283914c792c611f688b83ad3a2";
@@ -79,6 +80,7 @@ internal sealed class Launcher : Form
         { "Ative os códigos para a próxima partida.", "Choose cheats for your next game." },
         { "ROM do Mega Drive", "Genesis / Mega Drive ROM" },
         { "Procurar…", "Browse…" },
+        { "Filtro Scale2x", "Scale2x filter" },
         { "Tela cheia", "Fullscreen" },
         { "Jogar", "Play" },
         { "Idioma", "Language" },
@@ -299,6 +301,9 @@ internal sealed class Launcher : Form
         fullscreen.Text = "Tela cheia";
         fullscreen.Checked = Read("video","fullscreen","1") != "0";
         fullscreen.SetBounds(234,468,150,40); Controls.Add(fullscreen);
+        enhanced.Text = "Filtro Scale2x";
+        enhanced.Checked = Read("doom_launcher", "scale2x", "1") != "0";
+        enhanced.SetBounds(384,468,178,40); Controls.Add(enhanced);
         var play = ButtonAt(this,"Jogar",578,462,199,48); play.BackColor = Amber; play.ForeColor = Night;
         play.Font = new Font(Font, FontStyle.Bold);
         play.Click += delegate { Launch(); }; AcceptButton = play;
@@ -338,10 +343,12 @@ internal sealed class Launcher : Form
                 Save("input.p1", Keys[i], "button:" + bindings[i].SelectedIndex);
             Save("video", "fullscreen", fullscreen.Checked ? "1" : "0");
             Save("doom_launcher", "rom_utf8", Convert.ToBase64String(Encoding.UTF8.GetBytes(path)));
+            Save("doom_launcher", "scale2x", enhanced.Checked ? "1" : "0");
             Save("doom_launcher", "cheats", mask.ToString());
             var info = new ProcessStartInfo(game, "\"" + path + "\"") {
                 WorkingDirectory = Folder, UseShellExecute = false, CreateNoWindow = true };
             info.EnvironmentVariables["GENESIS_STRICT_JSR_STACK"] = "1";
+            info.EnvironmentVariables["DOOM_SCALE2X"] = enhanced.Checked ? "1" : "0";
             info.EnvironmentVariables["DOOM_CHEAT_MASK"] = mask.ToString();
             if ((mask & ~0x103f) != 0) info.EnvironmentVariables["GENESIS_FORCE_INTERP"] = "1";
             using (Process child = Process.Start(info)) { }

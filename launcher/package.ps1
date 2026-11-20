@@ -1,7 +1,7 @@
 ﻿param([Parameter(Mandatory=$true)][string]$GameBuild)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot
-$folder = Join-Path $root 'releases/Doom-Troopers-PC-Recomp-v0.1.4-win64'
+$folder = Join-Path $root 'releases/Doom-Troopers-PC-Recomp-v0.1.5-win64'
 New-Item -ItemType Directory -Force $folder | Out-Null
 $previous = Join-Path $root 'releases/Doom-Troopers-PC-Recomp-v0.1.1-win64.zip'
 Add-Type -AssemblyName System.IO.Compression.FileSystem

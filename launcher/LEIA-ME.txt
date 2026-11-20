@@ -1,10 +1,12 @@
-Doom Troopers PC Recomp v0.1.4 - Windows x64
+Doom Troopers PC Recomp v0.1.5 - Windows x64
 Abra Launcher.exe, selecione sua ROM Doom Troopers (USA) e clique em Jogar.
 Tambem pode arrastar a ROM sobre Jogar.bat. A ROM original e preservada.
 
 O launcher abre o jogo em tela cheia por padrao. Na aba Controle PS4 (P1),
 troque os botoes de atirar, pular e atacar com a arma. O padrao e quadrado
 para atirar, X para pular e bolinha para atacar. Options continua sendo Start.
+O filtro Scale2x suaviza contornos. Desmarque Filtro Scale2x para usar os pixels originais.
+A apresentacao tem alvo de 60 fps.
 L2 salva no slot 1 e R2 carrega esse slot.
 O menu Cheats oferece os 30 codigos do catalogo Doom Troopers USA.
 As escolhas entram em vigor ao clicar em Jogar e ficam salvas para a proxima partida.

@@ -21,6 +21,12 @@ find_package(SDL2 REQUIRED CONFIG NO_DEFAULT_PATH PATHS "${SDLROOT}/cmake")
 include("${RECOMP_ROOT}/cmake/GenesisRecompRunner.cmake")
 add_subdirectory("${RECOMP_ROOT}/recompiler" translator)
 enable_testing()
+add_executable(DoomScale2xTest scale2x_test.c)
+target_include_directories(DoomScale2xTest PRIVATE "${SDLROOT}/include")
+target_link_libraries(DoomScale2xTest PRIVATE SDL2::SDL2)
+add_custom_command(TARGET DoomScale2xTest POST_BUILD COMMAND "${CMAKE_COMMAND}" -E
+  copy_if_different "${SDLROOT}/lib/x64/SDL2.dll" "$<TARGET_FILE_DIR:DoomScale2xTest>")
+add_test(NAME scale2x_pixels COMMAND DoomScale2xTest)
 add_executable(TrapGapRegression trap_regression.c "${RUNNER}/m68k_interp.c"
   "${RECOMP_ROOT}/recompiler/src/m68k_decoder.c" "${RECOMP_ROOT}/recompiler/src/rom_parser.c")
 target_include_directories(TrapGapRegression PRIVATE "${RUNNER}" "${RUNNER}/include"
@@ -63,11 +69,11 @@ add_custom_command(OUTPUT ${GENERATED}
   VERBATIM)
 genesisrecomp_runner_sources(SOURCES TRACE ON REVERSE_DEBUG OFF)
 add_executable(DoomBootProbe ${SOURCES} ${GENERATED} doom_spec.c doom.rc)
-target_include_directories(DoomBootProbe PRIVATE "${GEN}" "${RUNNER}" "${RUNNER}/include"
+target_include_directories(DoomBootProbe PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${GEN}" "${RUNNER}" "${RUNNER}/include"
   "${RUNNER}/video" "${RUNNER}/external/ymfm/src" "${RUNNER}/external/superzazu"
   "${RUNNER}/external/clowncommon" "${RECOMP_ROOT}/recompiler/src"
   "${SDLROOT}/include")
-target_compile_definitions(DoomBootProbe PRIVATE INCLUDE_GENERATED_CODE=1
+target_compile_definitions(DoomBootProbe PRIVATE DOOM_ENHANCED_VIDEO=1 INCLUDE_GENERATED_CODE=1
   ENABLE_RECOMPILED_CODE=1 OWN_BACKEND=1 GEN_ENABLE_TRACE=1
   DEFAULT_DEBUG_PORT=4490 RECOMP_LAUNCHER=0 GENESIS_HAS_RECOMP_NET=0)
 target_compile_options(DoomBootProbe PRIVATE /W3 /utf-8 /bigobj /wd4996)

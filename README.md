@@ -14,12 +14,17 @@ Os testes mantêm a verificação estrita da pilha JSR habilitada.
 
 ## Testar em outro computador
 
-Extraia o [pacote Windows x64 v0.1.4](releases/Doom-Troopers-PC-Recomp-v0.1.4-win64.zip)
+**Aviso sobre o launcher** — Na análise consultada, Arctic Wolf, Bkav Pro, CrowdStrike Falcon, Elastic e SecureAge sinalizaram o `Launcher.exe`. O Microsoft Defender local verificou o ZIP e os arquivos extraídos sem detectar ameaças. A hipótese de falso positivo ainda aguarda confirmação dos fornecedores. [Relatório do launcher](https://www.virustotal.com/gui/file/a6df110cd9e7e9d0a8dab5c7a68fd6549cfbdb10cd6274c8ddddd7a7ce68f898/detection).
+
+SHA-256 do ZIP: `dc56ca516347bc22aeb8aba7c996b9b51d8022fe767cfd7aa21926945c780772`.
+
+Extraia o [pacote Windows x64 v0.1.5](releases/Doom-Troopers-PC-Recomp-v0.1.5-win64.zip)
 e abra `Launcher.exe`. Escolha sua ROM USA e clique em **Jogar**. A tela cheia
-vem ativada. O controle PS4 do jogador 1 usa quadrado para atirar, X para pular
-e bolinha para atacar com a arma. O launcher permite trocar esses bot?es e
-selecionar os 30 cheats da revis?o USA. L2 salva no slot 1 e R2 carrega o mesmo slot. As op??es s?o
-salvas para a pr?xima partida. Tamb?m ? poss?vel arrastar a ROM sobre `Jogar.bat`.
+vem ativada. O jogo usa o filtro Scale2x e tem alvo de 60 fps. Desmarque
+**Filtro Scale2x** no launcher para voltar aos pixels originais. O controle PS4 do jogador 1 usa quadrado para atirar, X para pular
+e bolinha para atacar com a arma. O launcher permite trocar esses botões e
+selecionar os 30 cheats da revisão USA. L2 salva no slot 1 e R2 carrega o mesmo slot. As opções são
+salvas para a próxima partida. Também é possível arrastar a ROM sobre `Jogar.bat`.
 
 O pacote nunca inclui a ROM. Ele contém o executável experimental, SDL2 e as
 bibliotecas redistribuíveis do Visual C++ necessárias para outro Windows x64.
