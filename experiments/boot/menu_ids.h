@@ -24,3 +24,11 @@
 #define ID_CHEAT_LIST 223
 #define ID_TOGGLE 224
 #define ID_CHEAT_HINT 225
+#define ID_LANG_LABEL 226
+#define ID_REGION 227
+#define ID_TITLE 228
+#define ID_DEFAULTS 229
+#define ID_LOAD_HINT 230
+#define ID_GAME_HEADING 231
+#define ID_GAME_INFO 232
+#define ID_COVER 233

@@ -3,6 +3,7 @@
 
 #include "menu_cheats.h"
 #include "menu_ids.h"
+#include "menu_skin.h"
 #include <SDL2/SDL.h>
 #include <bcrypt.h>
 #include <commdlg.h>
@@ -26,6 +27,7 @@ constexpr int pad_defaults[] = {2, 0, 1};
 
 struct Menu {
     HWND window{};
+    std::unique_ptr<MenuSkin> skin;
     wstring settings, launcher, rom;
     std::string runtime_path;
     HANDLE file = INVALID_HANDLE_VALUE;
@@ -164,16 +166,40 @@ void cheat_list(Menu &m, int index) {
 void refresh(Menu &m) {
     m.text(ID_GAME, m.tr(L"Game", L"Jogo"));
     m.text(ID_CONTROLS, m.tr(L"Controls", L"Controles"));
-    m.text(ID_ROM_LABEL, m.tr(L"Doom Troopers (USA) ROM", L"ROM de Doom Troopers (USA)"));
+    m.text(ID_ROM_LABEL, m.tr(L"Genesis / Mega Drive ROM", L"ROM do Mega Drive"));
+    m.text(ID_LANG_LABEL, m.tr(L"Language", L"Idioma"));
+    m.text(ID_SCALE, m.tr(L"Scale2x filter", L"Filtro Scale2x"));
+    m.text(ID_DEFAULTS, m.tr(L"Restore defaults", L"Restaurar padrão"));
+    m.text(ID_GAME_HEADING, m.tr(L"Game", L"Jogo"));
+    m.text(ID_GAME_INFO, m.tr(L"Select your Doom Troopers (USA) ROM below. Play verifies the original 2 MiB "
+                              L"cartridge image before starting.",
+                              L"Selecione abaixo sua ROM de Doom Troopers (USA). Jogar verifica a imagem "
+                              L"original de 2 MiB antes de iniciar."));
     m.text(ID_BROWSE, m.tr(L"Browse…", L"Procurar…"));
     m.text(ID_FULL, m.tr(L"Fullscreen", L"Tela cheia"));
     m.text(IDOK, m.tr(L"Play", L"Jogar"));
-    m.text(ID_ACTION, m.tr(L"Action", L"Ação"));
+    m.text(ID_ACTION, m.tr(L"Player 1", L"Jogador 1"));
     m.text(ID_KEY_LABEL, m.tr(L"Keyboard", L"Teclado"));
     m.text(ID_SHOOT, m.tr(L"Shoot", L"Atirar"));
     m.text(ID_JUMP, m.tr(L"Jump", L"Pular"));
     m.text(ID_MELEE, m.tr(L"Melee attack", L"Atacar"));
-    m.text(ID_SAVE_HINT, m.tr(L"L2 saves slot 1. R2 loads it.", L"L2 salva no slot 1. R2 carrega."));
+    m.text(ID_SAVE_HINT, m.tr(L"L2   Save state", L"L2   Salvar partida"));
+    m.text(ID_LOAD_HINT, m.tr(L"R2   Load state", L"R2   Carregar partida"));
+    const wchar_t *buttons[][2] = {{L"X (cross)", L"X (cruz)"},
+                                   {L"Circle", L"Bolinha"},
+                                   {L"Square", L"Quadrado"},
+                                   {L"Triangle", L"Triângulo"}};
+    for (int i = 0; i < 3; ++i) {
+        HWND control = m.item(ID_PAD0 + i);
+        int selected = selection(control);
+        // Keep any fifth, custom binding imported from settings.ini in its original slot.
+        for (int b = 0; b < 4; ++b) {
+            SendMessageW(control, CB_DELETESTRING, b, 0);
+            SendMessageW(control, CB_INSERTSTRING, b, (LPARAM)buttons[b][m.pt]);
+            SendMessageW(control, CB_SETITEMDATA, b, b);
+        }
+        SendMessageW(control, CB_SETCURSEL, selected, 0);
+    }
     m.text(ID_TOGGLE, m.tr(L"Toggle", L"Ativar/desativar"));
     m.text(ID_CHEAT_HINT, m.tr(L"Individual cheat effects are still under test.",
                                L"Os efeitos individuais dos cheats ainda estão em teste."));
@@ -182,11 +208,14 @@ void refresh(Menu &m) {
 
 void page(Menu &m, int tab) {
     m.page = tab;
-    for (int id = ID_ROM_LABEL; id <= ID_CHEAT_HINT; ++id) {
-        int owner = id <= ID_SCALE ? 0 : id <= ID_SAVE_HINT ? 1 : 2;
-        ShowWindow(m.item(id), owner == tab ? SW_SHOW : SW_HIDE);
-    }
-    CheckRadioButton(m.window, ID_GAME, ID_CHEATS, ID_GAME + tab);
+    for (int id = ID_ACTION; id <= ID_CHEAT_HINT; ++id)
+        ShowWindow(m.item(id), tab == (id <= ID_SAVE_HINT ? 1 : 2) ? SW_SHOW : SW_HIDE);
+    for (int id : {ID_DEFAULTS, ID_LOAD_HINT})
+        ShowWindow(m.item(id), tab == 1 ? SW_SHOW : SW_HIDE);
+    for (int id : {ID_GAME_HEADING, ID_GAME_INFO})
+        ShowWindow(m.item(id), tab == 0 ? SW_SHOW : SW_HIDE);
+    for (int id = ID_GAME; id <= ID_CHEATS; ++id)
+        InvalidateRect(m.item(id), nullptr, FALSE);
 }
 
 void init(Menu &m) {
@@ -220,7 +249,7 @@ void init(Menu &m) {
             add_choice(m.item(ID_PAD0 + i), pad.c_str(), -1, true);
     }
     refresh(m);
-    page(m, 0);
+    page(m, 1);
 }
 
 void warn(Menu &m, const wchar_t *en, const wchar_t *pt) {
@@ -332,12 +361,25 @@ INT_PTR CALLBACK dialog(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
         SetWindowLongPtrW(w, DWLP_USER, lp);
         SendMessageW(w, WM_SETICON, ICON_BIG,
                      (LPARAM)LoadIconW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(1)));
+        m->skin = std::make_unique<MenuSkin>();
+        m->skin->open(w);
         init(*m);
         SetTimer(w, 1, 40, nullptr);
         return TRUE;
     }
     if (!m)
         return FALSE;
+    if (msg == WM_ERASEBKGND) {
+        m->skin->background(w, (HDC)wp);
+        return TRUE;
+    }
+    if (msg == WM_CTLCOLORDLG || msg == WM_CTLCOLORSTATIC || msg == WM_CTLCOLOREDIT ||
+        msg == WM_CTLCOLORLISTBOX || msg == WM_CTLCOLORBTN)
+        return m->skin->colors((HWND)lp, (HDC)wp, msg);
+    if (msg == WM_DRAWITEM) {
+        m->skin->draw(*reinterpret_cast<DRAWITEMSTRUCT *>(lp), m->page);
+        return TRUE;
+    }
     if (msg == WM_TIMER) {
         controller_input(*m);
         return TRUE;
@@ -351,7 +393,18 @@ INT_PTR CALLBACK dialog(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
     int id = LOWORD(wp), event = HIWORD(wp);
     if (id >= ID_GAME && id <= ID_CHEATS)
         page(*m, id - ID_GAME);
-    else if (id == ID_LANGUAGE && event == CBN_SELCHANGE) {
+    else if (id == ID_DEFAULTS) {
+        for (int i = 0; i < 3; ++i) {
+            HWND key = m->item(ID_KEY0 + i);
+            int count = (int)SendMessageW(key, CB_GETCOUNT, 0, 0);
+            for (int row = 0; row < count; ++row)
+                if (SendMessageW(key, CB_GETITEMDATA, row, 0) == key_defaults[i]) {
+                    SendMessageW(key, CB_SETCURSEL, row, 0);
+                    break;
+                }
+            SendMessageW(m->item(ID_PAD0 + i), CB_SETCURSEL, pad_defaults[i], 0);
+        }
+    } else if (id == ID_LANGUAGE && event == CBN_SELCHANGE) {
         m->pt = selection(m->item(id)) == 1;
         refresh(*m);
     } else if (id == ID_BROWSE) {
@@ -404,6 +457,7 @@ int main(int argc, char **argv) {
     bool input = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0;
     INT_PTR result =
         DialogBoxParamW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(ID_MENU), nullptr, dialog, (LPARAM)&menu);
+    menu.skin.reset();
     if (menu.controller)
         SDL_GameControllerClose(menu.controller);
     if (input)
