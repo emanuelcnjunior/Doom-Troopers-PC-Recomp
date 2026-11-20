@@ -1,0 +1,104 @@
+diff --git a/runner/main.c b/runner/main.c
+index 7815211..0e9a16e 100644
+--- a/runner/main.c
++++ b/runner/main.c
+@@ -1100,10 +1100,11 @@ static const char *resolve_runner_path(const char *path, char *buf, size_t buf_l
+  * (VDP + bus incl. Z80 RAM/SRAM + the full embedded superzazu Z80 core), and
+  * both audio chips. Raw-struct format, private to a build — same convention as
+  * the clownmdemu-path states (which dumped g_clownmdemu raw); the magic keeps
+- * the formats from being confused. GROWNS2 = the declown-headers machine
++ * the formats from being confused. GROWNS3 adds the YM2612 timer A state.
++ * GROWNS2 = the declown-headers machine
+  * layout (superzazu z80 embedded in g_machine, no side ext blob); GROWNS1
+  * saves are rejected with a clear message rather than misloaded. */
+-static const char OWN_SAVE_MAGIC[8] = "GROWNS2\0";
++static const char OWN_SAVE_MAGIC[8] = "GROWNS3\0";
+ #include "host_state.h"
+ 
+ int runner_save_state_file(const char *path)
+diff --git a/runner/rb_state.c b/runner/rb_state.c
+index f0bf864..1691fbf 100644
+--- a/runner/rb_state.c
++++ b/runner/rb_state.c
+@@ -36,8 +36,8 @@ _Static_assert(sizeof(g_ram) == 0x10000, "work RAM size changed");
+ #if UINTPTR_MAX == 0xFFFFFFFFFFFFFFFFu
+ /* 64-bit layouts (the host pointers inside are scrubbed by machine_rb_save). */
+ _Static_assert(sizeof(GVDP) == 65824, "GVDP changed: review machine_rb_save (pointers) and rb_state");
+-_Static_assert(sizeof(GenesisBus) == 24664, "GenesisBus changed: review machine_rb_save and rb_state");
+-_Static_assert(sizeof(GenesisMachine) == 90576, "GenesisMachine changed: review machine_rb_save and rb_state");
++_Static_assert(sizeof(GenesisBus) == 24680, "GenesisBus changed: review machine_rb_save and rb_state");
++_Static_assert(sizeof(GenesisMachine) == 90592, "GenesisMachine changed: review machine_rb_save and rb_state");
+ #endif
+ 
+ /* ---- sections ---------------------------------------------------------------- */
+diff --git a/runner/video/genesis_bus.c b/runner/video/genesis_bus.c
+index c7d3a9c..8e100bd 100644
+--- a/runner/video/genesis_bus.c
++++ b/runner/video/genesis_bus.c
+@@ -61,8 +61,7 @@ extern void glue_charge_68k_stall(uint32_t cycles);
+  *
+  * The audio chips themselves are rendered later from the stamped write queue,
+  * so this small synchronous model exists solely for CPU-visible status reads.
+- * It deliberately models BUSY as always clear; only timer flag B is currently
+- * needed by supported software. */
++ * It deliberately models BUSY as always clear; timer flags are visible to both CPUs. */
+ #define MASTER_CYCLES_PER_FRAME  (262ull * 3420ull)
+ #define YM_TIMER_B_MASTER_TICK   (16ull * 144ull * 7ull)
+ 
+@@ -78,8 +77,20 @@ static uint64_t ym_abs_68k_stamp(void)
+            (uint64_t)STAMP_68K();
+ }
+ 
++static uint64_t ym_timer_a_period(const GenesisBus *b)
++{
++    return (1024u - b->ym_timer_a) * (144ull * 7ull);
++}
++
+ static void ym_timer_update(GenesisBus *b, uint64_t now)
+ {
++    if ((b->ym_mode & 1u) && now >= b->ym_timer_a_deadline) {
++        if (b->ym_mode & 4u) b->ym_status |= 1u;
++        uint64_t period = ym_timer_a_period(b);
++        uint64_t elapsed = now - b->ym_timer_a_deadline;
++        b->ym_timer_a_deadline += (elapsed / period + 1u) * period;
++    }
++
+     if (!b->ym_timer_b_running || b->ym_timer_b_period == 0 ||
+         now < b->ym_timer_b_deadline)
+         return;
+@@ -106,7 +117,11 @@ static void ym_write_side_effect(GenesisBus *b, uint8_t port, uint8_t val,
+     if (bank != 0) return;              /* timers live in register bank 0 */
+ 
+     uint8_t reg = b->ym_addr[0];
+-    if (reg == 0x26u) {
++    if (reg == 0x24u) {
++        b->ym_timer_a = (val << 2) | (b->ym_timer_a & 3u);
++    } else if (reg == 0x25u) {
++        b->ym_timer_a = (b->ym_timer_a & 0x3fcu) | (val & 3u);
++    } else if (reg == 0x26u) {
+         b->ym_timer_b = val;
+         b->ym_timer_b_period =
+             (uint64_t)(256u - (unsigned)val) * YM_TIMER_B_MASTER_TICK;
+@@ -116,6 +131,8 @@ static void ym_write_side_effect(GenesisBus *b, uint8_t port, uint8_t val,
+          * $26, then writes $3A (clear/load/run). */
+         if (val & 0x10u) b->ym_status &= 0xfeu;
+         if (val & 0x20u) b->ym_status &= 0xfdu;
++        if ((val & 1u) && !(b->ym_mode & 1u))
++            b->ym_timer_a_deadline = now + ym_timer_a_period(b);
+         b->ym_mode = val;
+         if (val & 0x02u) {
+             if (b->ym_timer_b_period == 0)
+diff --git a/runner/video/genesis_bus.h b/runner/video/genesis_bus.h
+index a1fafbd..b9ee2d1 100644
+--- a/runner/video/genesis_bus.h
++++ b/runner/video/genesis_bus.h
+@@ -50,6 +50,9 @@ typedef struct GenesisBus {
+     uint64_t ym_timer_b_deadline;       /* absolute scheduler master cycles    */
+     uint64_t ym_timer_b_period;         /* cached period in master cycles      */
+ 
++    uint16_t ym_timer_a;                /* ten-bit reload value, $24:$25 */
++    uint64_t ym_timer_a_deadline;       /* absolute scheduler master cycles */
++
+     /* Controllers / I-O. */
+     uint16_t pad[2];                    /* live button state (GPAD_* bits, 12) */
+     uint8_t  pad_type[2];               /* 0 = 3-button, 1 = 6-button          */

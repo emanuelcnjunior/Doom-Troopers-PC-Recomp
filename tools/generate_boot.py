@@ -18,7 +18,8 @@ output = args.output.resolve()
 if not any(output.is_relative_to(root / directory) for directory in ('build', 'local')):
     parser.error('Output must stay under ignored build/ or local/.')
 output.mkdir(parents=True, exist_ok=True)
-selected = select(parse(args.cheat_file), args.cheats) if args.cheat_file else []
+catalog = parse(args.cheat_file) if args.cheat_file else []
+selected = select(catalog, args.cheats)
 patched_rom = output / 'doom_cheat_input.bin'
 for cheat in selected:
     for patch in cheat.patches:
@@ -32,6 +33,7 @@ header.write_text(
     '#pragma once\n'
     'void doom_cheats_apply_rom(void);\n'
     'void doom_cheats_apply_ram(void);\n'
+    'void doom_launcher_cheats(unsigned mask, int rom);\n'
     'const char *doom_cheats_summary(void);\n', encoding='utf-8')
 rom_lines = []
 ram_lines = []
@@ -44,6 +46,21 @@ for cheat in selected:
             f'    {array}[0x{offset:06X}u] = 0x{patch.value >> 8:02X}u;',
             f'    {array}[0x{offset + 1:06X}u] = 0x{patch.value & 0xFF:02X}u;',
         ])
+launcher_lines = []
+for cheat in catalog:
+    for patch in cheat.patches:
+        is_rom = patch.kind == 'rom'
+        offset = patch.address if is_rom else patch.address - 0xFF0000
+        limit = len(rom) if is_rom else 65536
+        if not 0 <= offset < limit - 1:
+            raise ValueError(f"Patch outside mapped memory: {cheat.description}")
+        array = 'g_rom' if is_rom else 'g_ram'
+        launcher_lines.extend([
+            f'    if (rom == {int(is_rom)} && (mask & (1u << {cheat.index}))) {{',
+            f'        {array}[0x{offset:X}] = {patch.value >> 8};',
+            f'        {array}[0x{offset + 1:X}] = {patch.value & 255};',
+            '    }',
+        ])
 summary = ', '.join(f'{cheat.index}:{cheat.description}' for cheat in selected) or 'none'
 escaped_summary = summary.replace('\\', '\\\\').replace('"', '\\"')
 source.write_text(
@@ -53,6 +70,7 @@ source.write_text(
     'extern uint8_t g_ram[0x10000];\n'
     'void doom_cheats_apply_rom(void) {\n' + '\n'.join(rom_lines) + '\n}\n'
     'void doom_cheats_apply_ram(void) {\n' + '\n'.join(ram_lines) + '\n}\n'
+    'void doom_launcher_cheats(unsigned mask, int rom) {\n' + '\n'.join(launcher_lines) + '\n}\n'
     f'const char *doom_cheats_summary(void) {{ return "{escaped_summary}"; }}\n',
     encoding='utf-8')
 

@@ -1,4 +1,4 @@
-# Experimental discovery only; no patches, yield substitutions or guessed RAM symbols.
+# ROM-validated entry points and actor scheduler hook.
 [game]
 output_prefix = "doom"
 jump_table_autodiscovery = true
@@ -12,3 +12,8 @@ initial_ssp = 0x00FFFFFE
 # reset path in the SHA-validated image.
 extra = [0x0568A8, 0x000200, 0x00020A, 0x05EC9E, 0x05ED22, 0x05EF98,
          0x05F682]
+
+# This scheduler switches actor stacks before returning to the frame loop.
+[[widescreen_site]]
+addr = 0x000358
+kind = "game_hook"

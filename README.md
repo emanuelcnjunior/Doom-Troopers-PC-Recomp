@@ -14,14 +14,12 @@ Os testes mantêm a verificação estrita da pilha JSR habilitada.
 
 ## Testar em outro computador
 
-A pasta `build/` é uma saída local e não é versionada. Para testar sem
-compilar o projeto, baixe o ZIP para Windows x64 na página
-[Releases](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases).
-Uma cópia do mesmo pacote também fica versionada em
-[`releases/`](releases/Doom-Troopers-PC-Recomp-v0.1.0-prototype-win64.zip).
-Extraia todo o pacote, coloque sua ROM na mesma pasta com o nome
-`Doom Troopers (USA).md` e execute `Jogar.bat`. Também é possível arrastar a
-ROM sobre `Jogar.bat`.
+Extraia o [pacote Windows x64 v0.1.4](releases/Doom-Troopers-PC-Recomp-v0.1.4-win64.zip)
+e abra `Launcher.exe`. Escolha sua ROM USA e clique em **Jogar**. A tela cheia
+vem ativada. O controle PS4 do jogador 1 usa quadrado para atirar, X para pular
+e bolinha para atacar com a arma. O launcher permite trocar esses bot?es e
+selecionar os 30 cheats da revis?o USA. L2 salva no slot 1 e R2 carrega o mesmo slot. As op??es s?o
+salvas para a pr?xima partida. Tamb?m ? poss?vel arrastar a ROM sobre `Jogar.bat`.
 
 O pacote nunca inclui a ROM. Ele contém o executável experimental, SDL2 e as
 bibliotecas redistribuíveis do Visual C++ necessárias para outro Windows x64.

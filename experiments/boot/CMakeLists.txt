@@ -62,7 +62,7 @@ add_custom_command(OUTPUT ${GENERATED}
     "${ROOT}/tools/generate_boot.py" "${ROOT}/tools/rom_tool.py" "${ROOT}/tools/cheat_tool.py"
   VERBATIM)
 genesisrecomp_runner_sources(SOURCES TRACE ON REVERSE_DEBUG OFF)
-add_executable(DoomBootProbe ${SOURCES} ${GENERATED} doom_spec.c)
+add_executable(DoomBootProbe ${SOURCES} ${GENERATED} doom_spec.c doom.rc)
 target_include_directories(DoomBootProbe PRIVATE "${GEN}" "${RUNNER}" "${RUNNER}/include"
   "${RUNNER}/video" "${RUNNER}/external/ymfm/src" "${RUNNER}/external/superzazu"
   "${RUNNER}/external/clowncommon" "${RECOMP_ROOT}/recompiler/src"

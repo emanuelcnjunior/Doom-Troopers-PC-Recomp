@@ -20,6 +20,8 @@ for path, revision in lock['submodules'].items():
 
 patches = [
     (checkout, root / 'patches/framework-trap-runtime.patch'),
+    (checkout, root / 'patches/framework-ym2612-timer-a.patch'),
+    (checkout, root / 'patches/framework-launcher-runtime.patch'),
     (checkout / 'external/m68k-recomp-core', root / 'patches/m68k-core-doom-trap.patch'),
 ]
 for target, patch in patches:
