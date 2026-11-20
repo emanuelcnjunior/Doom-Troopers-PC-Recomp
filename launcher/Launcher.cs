@@ -9,6 +9,9 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
 
+[assembly: System.Reflection.AssemblyVersion("0.1.6.0")]
+[assembly: System.Reflection.AssemblyFileVersion("0.1.6.0")]
+
 internal sealed class Launcher : Form
 {
     private static readonly string Folder = AppDomain.CurrentDomain.BaseDirectory;
@@ -317,13 +320,33 @@ internal sealed class Launcher : Form
         };
     }
 
+    private void VerifyRuntime(List<FileStream> locks)
+    {
+        using (var reader = new StreamReader(typeof(Launcher).Assembly.GetManifestResourceStream("runtime.sha256")))
+        using (var sha = SHA256.Create())
+        {
+            string line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                string name = line.Substring(66);
+                var file = File.OpenRead(Path.Combine(Folder, name));
+                locks.Add(file);
+                if (!String.Equals(BitConverter.ToString(sha.ComputeHash(file)).Replace("-", ""),
+                    line.Substring(0, 64), StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException((english ? "Integrity check failed for " : "Falha de integridade em ") + name);
+            }
+        }
+    }
+
     private void Launch()
     {
+        var locks = new List<FileStream>();
         try
         {
             string path = Path.GetFullPath(rom.Text.Trim().Trim('"'));
             if (!File.Exists(path)) throw new IOException(Translate("Selecione sua ROM de Doom Troopers (USA)."));
-            using (var stream = File.OpenRead(path))
+            var stream = File.OpenRead(path);
+            locks.Add(stream);
             using (var sha = SHA256.Create())
                 if (stream.Length != 2097152 || BitConverter.ToString(sha.ComputeHash(stream)).Replace("-", "")
                     .ToLowerInvariant() != RomHash)
@@ -339,6 +362,7 @@ internal sealed class Launcher : Form
             for (int i = 0; i < cheats.Length; i++) if (cheats[i].Checked) mask |= 1 << i;
             var game = Path.Combine(Folder, "DoomBootProbe.exe");
             if (!File.Exists(game)) throw new FileNotFoundException(Translate("DoomBootProbe.exe está faltando na pasta do launcher."));
+            VerifyRuntime(locks);
             for (int i = 0; i < bindings.Length; ++i)
                 Save("input.p1", Keys[i], "button:" + bindings[i].SelectedIndex);
             Save("video", "fullscreen", fullscreen.Checked ? "1" : "0");
@@ -355,6 +379,7 @@ internal sealed class Launcher : Form
             Close();
         }
         catch (Exception ex) { MessageBox.Show(this, ex.Message, Text, MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+        finally { foreach (var file in locks) file.Dispose(); }
     }
 
     [STAThread]

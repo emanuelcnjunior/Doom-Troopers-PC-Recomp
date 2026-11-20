@@ -1,0 +1,34 @@
+﻿Doom Troopers PC Recomp v0.1.7 — Windows x64 — Menu integrado
+
+Extraia o ZIP inteiro em uma pasta gravável. Abra DoomBootProbe.exe sem argumentos.
+No menu Jogo, escolha sua ROM Doom Troopers (USA), tela cheia e Scale2x. O botão
+Jogar valida o tamanho e SHA-256 da ROM antes de iniciar no mesmo processo.
+Em Controles, escolha três teclas e três botões distintos para atirar, pular e
+atacar. L2 salva no slot 1 e R2 carrega. F11 alterna a tela cheia durante o jogo.
+Em Cheats, selecione uma linha e use Ativar/desativar ou clique duas vezes.
+Pular fases continua experimental e desabilitado. Os demais códigos ainda
+precisam de validação individual. Os grupos incompatíveis são exclusivos.
+Escolha Português ou English no topo. Jogar grava as preferências em launcher.ini
+e settings.ini. Para migrar, copie seus INIs existentes com o jogo fechado.
+Esses arquivos podem conter o caminho da sua ROM; mantenha-os privados.
+O diálogo de arquivos é do Windows. Para caminhos incompatíveis com o runtime
+legado, use uma pasta com nome simples. A ROM é fornecida pelo jogador.
+
+Menu: Tab e Shift+Tab movem o foco. Use setas nas listas e Espaço nos botões.
+Controle: direcional cima/baixo move o foco; esquerda/direita muda a seleção
+em listas; X (cruz) aciona e Options inicia. O seletor de arquivos usa os
+controles normais do Windows. Fechar o menu cancela sem iniciar o jogo.
+
+English
+Extract the full ZIP to a writable folder and open DoomBootProbe.exe. Pick your
+original USA ROM, configure Game, Controls and Cheats, and press Play. The menu
+checks the ROM SHA-256 and remembers your preferences. L2 saves and R2 loads
+slot 1. Skip levels is disabled. Other cheat effects require individual testing.
+Use the language selector for English or Portuguese. No .NET installation needed.
+
+Execução direta / Direct launch (PowerShell)
+    .\DoomBootProbe.exe "D:\Jogos\Doom Troopers (USA).md"
+Arguments bypass the menu and preserve the runtime command line. Direct launch
+uses the runtime size/CRC validation; it reads settings.ini and accepts the
+same environment options as the Direct edition. SHA256SUMS.txt lists package
+hashes before user settings or saves are created.

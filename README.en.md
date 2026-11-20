@@ -1,14 +1,7 @@
 # Doom Troopers (USA) — PC Recomp
 
-Windows x64 / Sega Genesis 68000 recompilation research.
-**Stage 0 only: identity validation tools. No working game, validated boot or installer.**
+**v0.1.7 Integrated** is the main portable Windows x64 distribution. Extract the entire ZIP to a writable folder, open `DoomBootProbe.exe`, choose English or Portuguese and select your legally obtained Doom Troopers (USA) ROM. The integrated menu verifies its size and SHA-256. Select **Play** to save your settings and start the game. You can also pass the ROM path directly on the command line. [Windows x64 release](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/tag/v0.1.7) · [Português](README.md)
 
-Supply your own local ROM. Never upload ROMs, generated game code, extracted
-assets, captures or save states to this repository. See [Portuguese README](README.md)
-for commands and [architecture](docs/architecture.md) for the incremental plan.
-Python 3.10+ and CMake 3.24+ are sufficient for the current tooling.
-No Genesis runtime or SNES dependency is included.
+The menu supports keyboard and PS4 button remapping, fullscreen, Scale2x and cheat selection. L2 saves slot 1 and R2 loads it. **Skip levels** is experimental and disabled. The four CTest checks passed and the gameplay smoke test reached frame 4,402. Testing on another Windows x64 PC, physical video and audio, controller navigation and remapped inputs, L2/R2 and the remaining cheat effects is pending. [Build and validation report](docs/integrated-menu-v0.1.7.md)
 
-An opt-in [boot experiment](docs/boot-experiment.md) now builds against a pinned
-local Genesis framework. Game boot fails at TRAP #1; no playable port or
-independent framebuffer/audio comparison has been validated.
+The ROM is supplied by the player. The executable contains translated game instructions whose distribution rights remain under review. VirusTotal results do not establish legal authorization. Framework and dependency notices are included in `LICENSES.txt`.

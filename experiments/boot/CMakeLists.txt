@@ -69,6 +69,12 @@ add_custom_command(OUTPUT ${GENERATED}
   VERBATIM)
 genesisrecomp_runner_sources(SOURCES TRACE ON REVERSE_DEBUG OFF)
 add_executable(DoomBootProbe ${SOURCES} ${GENERATED} doom_spec.c doom.rc)
+option(DOOM_INTEGRATED_MENU "Include the native Windows configuration menu" OFF)
+if(DOOM_INTEGRATED_MENU)
+  set_source_files_properties("${RUNNER}/main.c" PROPERTIES COMPILE_DEFINITIONS "SDL_main=doom_runtime_main")
+  target_sources(DoomBootProbe PRIVATE menu.cpp menu.rc)
+  target_link_libraries(DoomBootProbe PRIVATE bcrypt crypt32)
+endif()
 target_include_directories(DoomBootProbe PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "${GEN}" "${RUNNER}" "${RUNNER}/include"
   "${RUNNER}/video" "${RUNNER}/external/ymfm/src" "${RUNNER}/external/superzazu"
   "${RUNNER}/external/clowncommon" "${RECOMP_ROOT}/recompiler/src"

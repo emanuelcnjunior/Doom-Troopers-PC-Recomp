@@ -32,7 +32,7 @@
              close_pad_by_jid((SDL_JoystickID)ev->cdevice.which);
              break;
 -        case SDL_CONTROLLERBUTTONDOWN:
--            /* Quicksave / quickload taps from player 1's shoulders â€” only when
+-            /* Quicksave / quickload taps from player 1's shoulders — only when
 -             * P1 is a 3-button pad (6-button uses LB/RB for Y/Z). */
 -            if (s_pad[0] && ev->cbutton.which == s_pad_jid[0] &&
 -                g_input_map.p[0].pad_type != PAD_6BUTTON) {
@@ -80,7 +80,7 @@
 +            continue;
 +        }
          if (st != M68KI_OK) {
-             fprintf(stderr, "[FORCE_INTERP] HALT st=%d at PC=$%06X op=$%04X â€” parking "
+             fprintf(stderr, "[FORCE_INTERP] HALT st=%d at PC=$%06X op=$%04X — parking "
                      "(unimplemented instruction: complete the interpreter)\n",
 @@ -629,6 +644,7 @@
                    | ((uint32_t)g_rom[2] <<  8)

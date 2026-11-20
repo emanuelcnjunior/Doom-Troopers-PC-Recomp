@@ -2,56 +2,45 @@
 
 [English](README.en.md)
 
-Pesquisa para um port Windows x64 de Mutant Chronicles: Doom Troopers,
-do Sega Genesis/Mega Drive, por recompilação 68000.
-**Protótipo experimental: boot, menus e gameplay da fase 1 funcionam; ainda não
-há instalador nem validação completa contra um emulador de referência.**
+**v0.1.7 Integrated** é a distribuição portátil principal de Doom Troopers PC Recomp para Windows x64. O menu gráfico faz parte de `DoomBootProbe.exe`. O pacote inclui SDL2 e as bibliotecas necessárias do Visual C++ e dispensa instalador, launcher separado e .NET Framework.
 
-O [experimento de execução](docs/boot-experiment.md) compila em Release. O
-suporte local a TRAP/RTE e à pilha de chamadas permitiu percorrer de forma
-automatizada os logos, o título, a seleção de personagem, o briefing e a fase 1.
-Os testes mantêm a verificação estrita da pilha JSR habilitada.
+[Baixar ZIP Windows x64](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/download/v0.1.7/Doom-Troopers-PC-Recomp-v0.1.7-Windows-x64-Integrated.zip) · [Arquivo SHA-256](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/download/v0.1.7/Doom-Troopers-PC-Recomp-v0.1.7-Windows-x64-Integrated.zip.sha256) · [Notas da versão](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/tag/v0.1.7)
 
-## Testar em outro computador
+## Instalação e execução
 
-**Aviso sobre o launcher** — Na análise consultada, Arctic Wolf, Bkav Pro, CrowdStrike Falcon, Elastic e SecureAge sinalizaram o `Launcher.exe`. O Microsoft Defender local verificou o ZIP e os arquivos extraídos sem detectar ameaças. A hipótese de falso positivo ainda aguarda confirmação dos fornecedores. [Relatório do launcher](https://www.virustotal.com/gui/file/a6df110cd9e7e9d0a8dab5c7a68fd6549cfbdb10cd6274c8ddddd7a7ce68f898/detection).
+1. Extraia o ZIP inteiro em uma pasta gravável.
+2. Abra `DoomBootProbe.exe` sem argumentos e escolha português ou inglês no topo da janela.
+3. Em **Jogo**, selecione sua ROM de **Doom Troopers (USA)**, obtida legalmente. O menu confere o tamanho e o SHA-256 da revisão USA.
+4. Ajuste as opções em **Jogo**, **Controles** e **Cheats**. Clique em **Jogar** para salvar as preferências e iniciar a partida.
 
-SHA-256 do ZIP: `dc56ca516347bc22aeb8aba7c996b9b51d8022fe767cfd7aa21926945c780772`.
-
-Extraia o [pacote Windows x64 v0.1.5](releases/Doom-Troopers-PC-Recomp-v0.1.5-win64.zip)
-e abra `Launcher.exe`. Escolha sua ROM USA e clique em **Jogar**. A tela cheia
-vem ativada. O jogo usa o filtro Scale2x e tem alvo de 60 fps. Desmarque
-**Filtro Scale2x** no launcher para voltar aos pixels originais. O controle PS4 do jogador 1 usa quadrado para atirar, X para pular
-e bolinha para atacar com a arma. O launcher permite trocar esses botões e
-selecionar os 30 cheats da revisão USA. L2 salva no slot 1 e R2 carrega o mesmo slot. As opções são
-salvas para a próxima partida. Também é possível arrastar a ROM sobre `Jogar.bat`.
-
-O pacote nunca inclui a ROM. Ele contém o executável experimental, SDL2 e as
-bibliotecas redistribuíveis do Visual C++ necessárias para outro Windows x64.
-Windows pode exibir um aviso por se tratar de um binário experimental sem
-assinatura digital.
-
-A ROM não está incluída e nunca deve ser enviada ao GitHub. Forneça sua cópia
-local binária; a extensão `.md` não significa Markdown neste caso.
+Para abrir diretamente pelo PowerShell, passe o caminho da ROM entre aspas. Esse fluxo usa a validação de tamanho e CRC32 do runtime.
 
 ```powershell
-python tools/rom_tool.py validate "C:\caminho\Doom Troopers (USA).md"
-python tools/rom_tool.py inspect "C:\caminho\Doom Troopers (USA).md"
-cmake -S . -B build
-cmake --build build --config Release
-ctest --test-dir build -C Release --output-on-failure
+.\DoomBootProbe.exe "D:\Jogos\Doom Troopers (USA).md"
 ```
 
-Python 3.10+, CMake 3.24+, Visual Studio 2022 e SDL2 do framework fixado são
-usados pelo protótipo. `inspect` só processa a identidade aceita e imprime
-metadados; não exporta código, gráficos ou áudio. Não versionar sua saída local.
-Outras extensões são aceitas somente se tamanho e SHA-256 coincidirem.
+## Controles e opções
 
-Veja [arquitetura](docs/architecture.md), [opções técnicas](docs/research.md),
-[auditoria](docs/audit.md) e [protocolo de comparação](docs/validation.md).
-Nenhuma dependência de execução foi incorporada. SNESRecomp não é um backend Genesis.
+| Função | Teclado | Controle PS4 do jogador 1 |
+| --- | --- | --- |
+| Mover / iniciar | Setas / Enter | Direcional / Options |
+| Atirar / pular / atacar | X / C / Z | Quadrado / X (cruz) / bolinha |
+| Salvar / carregar o slot 1 | Shift+F1 / F1 | L2 / R2 |
 
-A organização separa código próprio, geração local e documentação, inspirada no
-[TMNT IV PC Recomp](https://github.com/emanuelcnjunior/TMNT-IV-Turtles-in-Time-PC-Recomp).
-Nenhum código ou recurso desse projeto foi copiado. Direitos do jogo pertencem
-aos respectivos titulares; este projeto não concede licença sobre a ROM.
+Em **Controles**, escolha três teclas e três botões distintos para remapear as ações. Em **Jogo**, escolha janela ou tela cheia e ligue ou desligue o filtro Scale2x. F11 alterna a tela cheia durante a partida. O menu reutiliza `launcher.ini` e `settings.ini`. Para migrar preferências, copie seus INIs com o jogo fechado. Eles podem conter o caminho local da ROM.
+
+Em **Cheats**, selecione uma opção e use **Ativar/desativar** ou clique duas vezes. **Pular fases** permanece experimental e desabilitado por instabilidade. O efeito de energia de P1 foi testado. Os demais efeitos ainda exigem validação individual.
+
+## Validação
+
+O build Release e os quatro testes CTest passaram. O roteiro de gameplay chegou ao quadro 4.402 com quatro capturas idênticas às da candidata Direct. O teste automatizado gravou e restaurou um save state. Continuam pendentes os testes em outro Windows x64, monitor e áudio físicos, navegação e remapeamento no controle PS4, L2/R2 e os demais cheats. [Relatório e instruções de build](docs/integrated-menu-v0.1.7.md)
+
+SHA-256 do ZIP: `20f4706c4285a9010c59955aa29b28b69ca55370eb68edeec4505eb24405a236`. No VirusTotal em **20/11/2026**, o executável registrou **0/70** e o ZIP **0/66**. São resultados daquela data e não garantem ausência de ameaças. O histórico do launcher separado permanece na auditoria da versão anterior. [Executável](https://www.virustotal.com/gui/file/f543d5f75003e081265ec790d061dbc4c0b5da2ede800a559a49c3c1a2b0f97a) · [ZIP](https://www.virustotal.com/gui/file/20f4706c4285a9010c59955aa29b28b69ca55370eb68edeec4505eb24405a236) · [Auditoria v0.1.6](docs/security-audit-v0.1.6.md)
+
+## Projeto, créditos e licenças
+
+O projeto pesquisa a recompilação de código 68000 de Mutant Chronicles: Doom Troopers (Sega Genesis/Mega Drive). A organização de código próprio, geração local e documentação foi inspirada no TMNT IV PC Recomp. Nenhum código ou recurso desse projeto foi copiado. [TMNT IV PC Recomp](https://github.com/emanuelcnjunior/TMNT-IV-Turtles-in-Time-PC-Recomp)
+
+O arquivo `LICENSES.txt` reúne a licença PolyForm Noncommercial do framework e os avisos das bibliotecas distribuídas. Os direitos do jogo pertencem aos respectivos titulares. A ROM é fornecida pelo jogador e não acompanha a distribuição. **Permanece pendente a revisão dos direitos de distribuição das instruções do jogo recompiladas e incorporadas ao executável.** Os resultados do VirusTotal não resolvem essa questão.
+
+Para desenvolvimento, consulte a documentação do projeto. [Experimento de execução](docs/boot-experiment.md) · [Arquitetura](docs/architecture.md) · [Pesquisa](docs/research.md) · [Auditoria](docs/audit.md) · [Protocolo de comparação](docs/validation.md)

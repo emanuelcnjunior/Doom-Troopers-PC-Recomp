@@ -1,0 +1,76 @@
+﻿Doom Troopers PC Recomp v0.1.6 — Windows x64 Direct
+
+Extraia o ZIP inteiro em uma pasta gravável. Abra Jogar.cmd e selecione sua ROM
+Doom Troopers (USA). O seletor é do próprio DoomBootProbe.exe. O CMD apenas
+define as opções abaixo e inicia o jogo na pasta extraída. Para jogar sem o
+CMD, abra o EXE, arraste a ROM sobre ele ou execute no PowerShell:
+    .\DoomBootProbe.exe "D:\Jogos\Doom Troopers (USA).md"
+
+O jogo confere tamanho (2.097.152 bytes) e CRC32 (11194414). Para verificar
+a identidade SHA-256 da sua ROM, use Get-FileHash -LiteralPath "caminho da ROM"
+e compare com d2fedd7f024571a4a30d241bca2d66fcd5db60283914c792c611f688b83ad3a2.
+O seletor usa a API ANSI do Windows. Em caso de erro com nomes Unicode ou
+caminhos muito longos, escolha uma pasta curta com nome simples.
+
+Teclado e controle
+Setas movem, X atira, C pula, Z ataca e Enter equivale a Start.
+No PS4, quadrado atira, X pula, bolinha ataca e Options inicia. L2 salva e
+R2 carrega o slot 1. No teclado, Shift+F1 salva e F1 carrega.
+Em settings.ini, fullscreen=1 abre em tela cheia e 0 abre em janela. F11 ou
+Alt+Enter alterna durante a partida. Para remapear, edite pad.B (atirar),
+pad.C (pular) e pad.A (atacar). Use três botões distintos: button:0 = X,
+button:1 = bolinha, button:2 = quadrado, button:3 = triângulo. Feche o jogo
+antes de editar. A configuração e os saves ficam locais. Preserve seus arquivos
+ao trocar de versão.
+
+Scale2x e cheats
+Em Jogar.cmd, edite DOOM_SCALE2X (1 ligado, 0 desligado) e DOOM_CHEAT_MASK
+(0 desliga todos). Use o Bloco de Notas. Para ativar códigos, some os valores
+decimais da tabela e grave somente o total. Ex.: energia e vidas de P1 = 3.
+O CMD escolhe o modo de interpretação necessário à seleção. Ao abrir o EXE
+sozinho, os valores do CMD não são lidos. O padrão do EXE é Scale2x ligado
+e cheats desligados, salvo se essas variáveis já existirem no ambiente.
+
+Não combine mais de um índice de cada grupo: 6/7, 17–20, 21/22, 23/24 e 27–29.
+Índice | Valor | Efeito / Effect
+ 0 |         1 | Energia infinita · P1 / Infinite Energy P1
+ 1 |         2 | Vidas infinitas · P1 / Infinite Lives P1
+ 2 |         4 | Munição infinita · P1 / Infinite Gun P1
+ 3 |         8 | Energia infinita · P2 / Infinite Energy P2
+ 4 |        16 | Vidas infinitas · P2 / Infinite Lives P2
+ 5 |        32 | Munição infinita · P2 / Infinite Gun P2
+ 6 |        64 | Pular fases / Skip Levels
+ 7 |       128 | Velocidade dupla / Double Velocity
+ 8 |       256 | Vidas infinitas / Infinite Lives
+ 9 |       512 | Energia infinita / Infinite Energy
+10 |      1024 | Munição infinita / Infinite AMMO
+11 |      2048 | Vidas infinitas no modo de 2 jogadores / Infinite Lives In 2P Mode
+12 |      4096 | Invencibilidade após um golpe / 1 Hit Invincibility
+13 |      8192 | Habilitar invencibilidade para ambos / Enable Invincibility Cheat - Both Players
+14 |     16384 | Selecionar fase após escolher o personagem / Enable Level Select after Character Select Screen
+15 |     32768 | Continuações infinitas / Infinite Continues
+16 |     65536 | Reduzir dano para ambos / Take Less Damage - Both Players
+17 |    131072 | Começar com 200 munições / Start with 200 Gun Ammo, instead of 100 - Both Players
+18 |    262144 | Começar com 300 munições / Start with 300 Gun Ammo - Both Players
+19 |    524288 | Começar com 500 munições / Start with 500 Gun Ammo - Both Players
+20 |   1048576 | Começar com 999 munições / Start with 999 Gun Ammo - Both Players
+21 |   2097152 | Começar com 5 vidas / Start with 5 Lives, instead of 2 - Both Players
+22 |   4194304 | Começar com 9 vidas / Start with 9 Lives - Both Players
+23 |   8388608 | Começar com 5 continuações / Start with 5 Continues, instead of 2
+24 |  16777216 | Começar com 9 continuações / Start with 9 Continues
+25 |  33554432 | Munição infinita para ambos / Infinite Ammo - Both Players
+26 |  67108864 | Coletar 100 munições por item / Gun Ammo Pickups worth 100, instead of 50
+27 | 134217728 | Dobrar duração da invencibilidade / Temporary Invincibility after being hit lasts 2x longer
+28 | 268435456 | Triplicar duração da invencibilidade / Temporary Invincibility after being hit lasts 3x longer
+29 | 536870912 | Multiplicar duração da invencibilidade por 5 / Temporary Invincibility after being hit lasts 5x longer
+
+English quick start
+Extract the full ZIP into a writable folder. Open Jogar.cmd and pick your own
+USA ROM, or drag it onto DoomBootProbe.exe for a direct start. Edit settings.ini
+for fullscreen and pad bindings. Edit Jogar.cmd for Scale2x and the decimal
+sum of cheat values above. Choose at most one from each group listed above.
+Skip Levels (index 6, value 64) halted the interpreter during boot. Leave it off.
+L2 saves and R2 loads slot 1. The graphical launcher and remembered ROM path
+are omitted. The game checks ROM size and CRC32. Use the SHA-256 above for
+manual verification. SHA256SUMS.txt lists the original package file hashes;
+editing settings.ini or Jogar.cmd changes their hashes.
