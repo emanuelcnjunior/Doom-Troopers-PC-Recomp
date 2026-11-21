@@ -61,6 +61,7 @@ try {
     }
     Copy-Item -LiteralPath (Join-Path $FrameworkRoot 'runner/external/SDL2/SDL2-2.28.5/lib/x64/SDL2.dll') -Destination $stage
     Run-Portable 'notices' $FrameworkRoot $stage
+    Copy-Item -LiteralPath (Join-Path $root 'recomplauncher.json') -Destination $stage
     if ($Integrated) {
         Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'integrated/LEIA-ME.txt') -Destination $stage
     } elseif ($Direct) {

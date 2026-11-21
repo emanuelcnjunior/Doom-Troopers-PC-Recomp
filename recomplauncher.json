@@ -1,0 +1,69 @@
+{
+  "$schema": "https://recomplauncher.com/schema/recomplauncher.json",
+  "format": 1,
+  "name": "Doom Troopers (USA)",
+  "repo": "emanuelcnjunior/Doom-Troopers-PC-Recomp",
+  "game": {
+    "kind": "iso",
+    "label": "Select your uncompressed Doom Troopers (USA) Sega Genesis ROM (.md, .bin or .gen).",
+    "dumps": [
+      { "name": "USA", "size": 2097152, "crc32": "11194414" }
+    ]
+  },
+  "start": {
+    "program": ["DoomBootProbe.exe"],
+    "args": ["{game}", "--no-launcher"],
+    "env": { "GENESIS_STRICT_JSR_STACK": "1" }
+  },
+  "saves": ["{install}/native_save_*.bin"],
+  "config": [
+    {
+      "format": "ini",
+      "file": [{ "path": "{install}/settings.ini" }],
+      "new": {
+        "video/fullscreen": "1",
+        "input.p1/pad.B": "button:2",
+        "input.p1/pad.C": "button:0",
+        "input.p1/pad.A": "button:1"
+      }
+    }
+  ],
+  "settings": [
+    {
+      "id": "display",
+      "label": "Display mode",
+      "group": "Video",
+      "choices": [
+        { "label": "Windowed", "set": { "video/fullscreen": "0" } },
+        { "label": "Borderless fullscreen", "set": { "video/fullscreen": "1" } },
+        { "label": "Exclusive fullscreen", "set": { "video/fullscreen": "2" } }
+      ],
+      "defaults": { "video/fullscreen": "1" }
+    },
+    {
+      "id": "window_scale",
+      "label": "Window scale",
+      "group": "Video",
+      "when": { "video/fullscreen": "0" },
+      "slider": { "key": "video/window_scale", "min": 1, "max": 8, "step": 1, "format": "%.0f" },
+      "defaults": { "video/window_scale": "2" }
+    },
+    {
+      "id": "filter",
+      "label": "Texture filtering",
+      "group": "Video",
+      "choices": [
+        { "label": "Nearest neighbor", "set": { "video/linear_filter": "0" } },
+        { "label": "Bilinear", "set": { "video/linear_filter": "1" } }
+      ],
+      "defaults": { "video/linear_filter": "0" }
+    },
+    {
+      "id": "volume",
+      "label": "Master volume",
+      "group": "Audio",
+      "slider": { "key": "audio/volume", "min": 0, "max": 100, "step": 1, "format": "%.0f" },
+      "defaults": { "audio/volume": "100" }
+    }
+  ]
+}

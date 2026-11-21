@@ -16,7 +16,7 @@ DLLS = {
     "vcruntime140.dll": "d5e4d9a3e835fa679450145d6a7d94e36573a509317111904d9b3712c30d9066",
     "vcruntime140_1.dll": "1f2d41c4aa5db0bc33ebf7b66d72943a817d7ce6cbe880502a9403823633093f",
 }
-PAYLOAD = sorted([*DLLS, "DoomBootProbe.exe", "Launcher.exe", "LICENSES.txt", "LEIA-ME.txt"])
+PAYLOAD = [*DLLS, "DoomBootProbe.exe", "LICENSES.txt", "LEIA-ME.txt", "recomplauncher.json"]
 MANIFEST = "SHA256SUMS.txt"
 
 
@@ -57,10 +57,12 @@ def verify_dlls(folder):
 
 
 def archive(folder, target, direct=False, integrated=False):
-    payload = sorted([*DLLS, "DoomBootProbe.exe", "LICENSES.txt", "LEIA-ME.txt",
-                      "Jogar.cmd", "settings.ini"]) if direct else PAYLOAD
-    if integrated:
-        payload = [name for name in PAYLOAD if name != "Launcher.exe"]
+    payload = PAYLOAD.copy()
+    if direct:
+        payload.extend(["Jogar.cmd", "settings.ini"])
+    elif not integrated:
+        payload.append("Launcher.exe")
+    payload.sort()
     if sorted(p.name for p in folder.iterdir()) != payload:
         raise ValueError("Unexpected or missing staging entries")
     entries = {name: (folder / name).read_bytes() for name in payload}

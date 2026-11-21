@@ -1,5 +1,7 @@
 # Doom Troopers (USA) — PC Recomp
 
+<a href="https://recomplauncher.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://recomplauncher.com/assets/press/launcher/badge-light.svg"><img alt="Get it on RecompLauncher" src="https://recomplauncher.com/assets/press/launcher/badge-dark.svg" height="48"></picture></a>
+
 [English](README.en.md)
 
 **v0.1.7 Integrated** é a distribuição portátil principal de Doom Troopers PC Recomp para Windows x64. O menu gráfico faz parte de `DoomBootProbe.exe`. O pacote inclui SDL2 e as bibliotecas necessárias do Visual C++ e dispensa instalador, launcher separado e .NET Framework.
