@@ -4,9 +4,9 @@
 
 # Doom Troopers PC Recomp
 
-A PC recompilation of *Mutant Chronicles: Doom Troopers* for the Sega Genesis / Mega Drive. The portable **v0.1.7 Integrated** release combines the game and its settings menu in one **Windows x64** executable.
+A PC recompilation of *Mutant Chronicles: Doom Troopers* for the Sega Genesis / Mega Drive. The portable **v0.1.10 Integrated** release combines the game and its settings menu in one **Windows x64** executable and includes the validated level 1 to results and level 2 transition fix.
 
-**[Download for Windows x64 (ZIP)](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/download/v0.1.7/Doom-Troopers-PC-Recomp-v0.1.7-Windows-x64-Integrated.zip)** · [SHA-256](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/download/v0.1.7/Doom-Troopers-PC-Recomp-v0.1.7-Windows-x64-Integrated.zip.sha256) · [Release notes](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/tag/v0.1.7)
+**[Download for Windows x64 (ZIP)](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/download/v0.1.10/Doom-Troopers-PC-Recomp-v0.1.10-Windows-x64-Integrated.zip)** · [SHA-256](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/download/v0.1.10/Doom-Troopers-PC-Recomp-v0.1.10-Windows-x64-Integrated.zip.sha256) · [Release notes](https://github.com/emanuelcnjunior/Doom-Troopers-PC-Recomp/releases/tag/v0.1.10)
 
 <a href="https://recomplauncher.com"><picture><source media="(prefers-color-scheme: dark)" srcset="https://recomplauncher.com/assets/press/launcher/badge-light.svg"><img alt="Get it on RecompLauncher" src="https://recomplauncher.com/assets/press/launcher/badge-dark.svg" height="48"></picture></a>
 

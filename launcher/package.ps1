@@ -1,6 +1,7 @@
 [CmdletBinding(DefaultParameterSetName='Local')]
 param(
     [Parameter(Mandatory=$true)][string]$GameBuild,
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.10',
     [Parameter(Mandatory=$true, ParameterSetName='Signed')]
     [Parameter(Mandatory=$true, ParameterSetName='Local')]
     [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$GameSha256,
@@ -24,9 +25,9 @@ if (!$CrtDirectory) {
     $vs = & $finder -latest -products '*' -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
     $CrtDirectory = Join-Path $vs 'VC/Redist/MSVC/14.44.35112/x64/Microsoft.VC143.CRT'
 }
-$name = 'Doom-Troopers-PC-Recomp-v0.1.6-Windows-x64'
+$name = "Doom-Troopers-PC-Recomp-v$Version-Windows-x64"
 if ($Direct -and $Integrated) { throw 'Select one package format.' }
-if ($Integrated) { $name = 'Doom-Troopers-PC-Recomp-v0.1.7-Windows-x64-Integrated' }
+if ($Integrated) { $name += '-Integrated' }
 if ($Direct) { $name += '-Direct' }
 if ($signed) { $name += '-signed' }
 $output = (New-Item -ItemType Directory -Force $OutputDirectory).FullName
