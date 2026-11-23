@@ -1,0 +1,27 @@
+diff --git a/runner/m68k_interp.c b/runner/m68k_interp.c
+index c71a2a2..4c95340 100644
+--- a/runner/m68k_interp.c
++++ b/runner/m68k_interp.c
+@@ -916,6 +916,21 @@ static M68kiStatus exec_one(const M68KInstr *ins, uint32_t *next_pc) {
+         *next_pc = pop32();
+         return M68KI_OK;
+     }
++    case MN_TRAP:
++        /* Doom Troopers uses TRAP #0 as a conventional call whose handler
++         * returns with RTE.  Run it through the same exception-frame runtime
++         * as generated code, then continue at the PC restored by RTE.  TRAP
++         * #1 is intentionally left to the game adapter: that vector discards
++         * the actor stack and transfers to a different game state. */
++        if ((ins->imm32 & 0xFu) == 0u) {
++            g_cpu.PC = fall & 0xFFFFFFu;
++            m68k_trap_vector(0x20u);
++            *next_pc = g_cpu.PC & 0xFFFFFFu;
++            return M68KI_OK;
++        }
++        g_m68ki_bad_pc = ins->addr;
++        g_m68ki_bad_op = ins->words[0];
++        return M68KI_HALT_UNIMPL;
+-
++
+     /* ---- shifts / rotates (register Dn target) ---- */
+     case MN_LSL: case MN_LSR: case MN_ASL: case MN_ASR:

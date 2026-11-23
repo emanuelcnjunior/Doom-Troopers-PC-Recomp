@@ -31,7 +31,7 @@ add_executable(TrapGapRegression trap_regression.c "${RUNNER}/m68k_interp.c"
   "${RECOMP_ROOT}/recompiler/src/m68k_decoder.c" "${RECOMP_ROOT}/recompiler/src/rom_parser.c")
 target_include_directories(TrapGapRegression PRIVATE "${RUNNER}" "${RUNNER}/include"
   "${RECOMP_ROOT}/recompiler/src")
-add_test(NAME known_cartridge_trap_gap COMMAND TrapGapRegression)
+add_test(NAME cartridge_trap_contract COMMAND TrapGapRegression)
 set(TRAP_DIR "${CMAKE_CURRENT_BINARY_DIR}/trap-generated")
 file(MAKE_DIRECTORY "${TRAP_DIR}")
 set(TRAP_SOURCES "${TRAP_DIR}/trap_module.c")
