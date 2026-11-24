@@ -1,4 +1,4 @@
-Doom Troopers PC Recomp v0.1.10 — Windows x64 — Menu integrado
+Doom Troopers PC Recomp v0.1.11 — Windows x64 — Menu integrado
 
 Extraia o ZIP inteiro em uma pasta gravável. Abra DoomBootProbe.exe sem argumentos.
 No menu Jogo, escolha sua ROM Doom Troopers (USA), tela cheia e Scale2x. O botão

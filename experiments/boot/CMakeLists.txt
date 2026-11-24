@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.24)
-project(DoomBootProbe LANGUAGES C CXX)
+project(DoomBootProbe VERSION 0.1.11 LANGUAGES C CXX)
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 get_filename_component(ROOT "${CMAKE_CURRENT_LIST_DIR}/../.." ABSOLUTE)
@@ -51,6 +51,12 @@ target_include_directories(TrapNativeProof PRIVATE "${TRAP_DIR}"
   "${RECOMP_ROOT}/external/m68k-recomp-core/runtime")
 add_test(NAME synthetic_native_trap_rte COMMAND TrapNativeProof "${TRAP_DIR}/fixture.bin")
 if(DOOM_ROM)
+set(YM_TIMER_PATCH "${ROOT}/patches/framework-ym2612-timer-a.patch")
+execute_process(COMMAND git -C "${RECOMP_ROOT}" apply --reverse --check "${YM_TIMER_PATCH}"
+  RESULT_VARIABLE YM_TIMER_PATCH_STATUS ERROR_QUIET)
+if(NOT YM_TIMER_PATCH_STATUS EQUAL 0)
+  message(FATAL_ERROR "The game needs the YM2612 timer A patch for audio. Prepare the pinned framework with tools/setup_framework.py.")
+endif()
 set(GEN "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED "${GEN}/doom_dispatch.c" "${GEN}/doom_layout.c" "${GEN}/doom_cheats.c" "${GEN}/doom_cheats.h")
 foreach(N RANGE 0 31)
@@ -85,6 +91,8 @@ target_compile_definitions(DoomBootProbe PRIVATE DOOM_ENHANCED_VIDEO=1 INCLUDE_G
 target_compile_options(DoomBootProbe PRIVATE /W3 /utf-8 /bigobj /wd4996)
 target_link_libraries(DoomBootProbe PRIVATE SDL2::SDL2main SDL2::SDL2 ws2_32 comdlg32)
 genesisrecomp_runner_target(DoomBootProbe)
+add_test(NAME doom_title_audio COMMAND "${Python3_EXECUTABLE}"
+  "${ROOT}/tests/check_title_audio.py" "$<TARGET_FILE:DoomBootProbe>" "${DOOM_ROM}")
 add_custom_command(TARGET DoomBootProbe POST_BUILD COMMAND "${CMAKE_COMMAND}" -E
   copy_if_different "${SDLROOT}/lib/x64/SDL2.dll" "$<TARGET_FILE_DIR:DoomBootProbe>")
 endif()

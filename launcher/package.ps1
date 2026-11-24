@@ -1,7 +1,7 @@
 [CmdletBinding(DefaultParameterSetName='Local')]
 param(
     [Parameter(Mandatory=$true)][string]$GameBuild,
-    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.10',
+    [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.11',
     [Parameter(Mandatory=$true, ParameterSetName='Signed')]
     [Parameter(Mandatory=$true, ParameterSetName='Local')]
     [ValidatePattern('^[a-fA-F0-9]{64}$')][string]$GameSha256,
