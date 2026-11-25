@@ -6,6 +6,8 @@
 #include "m68k_interp.h"
 #include <stdio.h>
 #include <stdlib.h>
+void doom_audio_init(void);
+void doom_audio_clear(void);
 static unsigned launcher_cheats;
 static int transition_trace;
 static uint64_t doom_frame_count;
@@ -78,6 +80,7 @@ static void hint(void) { recomp_call_addr(0x00020Au); }
 static void post_reset(void) {
     const char *trace = getenv("DOOM_TRANSITION_TRACE");
     transition_trace = trace && *trace && *trace != '0';
+    doom_audio_init();
     doom_cheats_apply_rom();
     configure_launcher_cheats();
     fprintf(stderr, "[Doom cheats] %s\n", doom_cheats_summary());
@@ -133,6 +136,7 @@ const GameSpec g_game_spec = {
     .expected_rom_size = 2097152u,
     .tier3_floor_default = 1,
     .instruction_hook = run_actor_scheduler,
+    .on_state_loaded = doom_audio_clear,
     .call_entry_point = entry,
     .call_vblank = vint,
     .call_hblank = hint

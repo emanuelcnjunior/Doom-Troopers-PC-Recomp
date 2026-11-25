@@ -25,7 +25,8 @@ parser.add_argument("--rom", required=True, type=Path)
 parser.add_argument("--exe", required=True, type=Path)
 parser.add_argument("--output", type=Path)
 parser.add_argument("--runner", type=Path,
-                    help="Optional compatibility runner, for example Proton's proton script")
+                    help="Optional Wine binary or Proton script")
+parser.add_argument("--runner-kind", choices=("wine", "proton"), default="proton")
 parser.add_argument("game_args", nargs="*")
 args = parser.parse_args()
 
@@ -41,8 +42,14 @@ env = os.environ.copy()
 env["DOOM_TRANSITION_TRACE"] = "1"
 env["GENESIS_STRICT_JSR_STACK"] = "1"
 if runner:
-    command = [str(runner), "run", str(exe), str(args.rom.resolve()),
-               "--no-launcher", *args.game_args]
+    if os.name == "nt":
+        parser.error("Use --runner from the Linux host")
+    # The Windows executable opens the ROM with a Windows file API.
+    rom_arg = "Z:" + str(args.rom.resolve()).replace("/", "\\")
+    command = [str(runner)]
+    if args.runner_kind == "proton":
+        command.append("run")
+    command.extend([str(exe), rom_arg, "--no-launcher", *args.game_args])
 else:
     command = [str(exe), str(args.rom.resolve()), "--no-launcher", *args.game_args]
 print("Play through level 1, continue into level 2, then close the game.")
@@ -59,23 +66,35 @@ metadata = {
     "rom_sha256": sha256(args.rom),
     "trace": True,
     "strict_jsr_stack": True,
-    "game_args": args.game_args,
+    "extra_arguments_used": bool(args.game_args),
     "privacy": "Archive contains logs and metadata only; no ROM or save files.",
 }
 if runner:
     metadata["compatibility_runner"] = runner.name
-    try:
-        version = subprocess.run([str(runner), "--version"], env=env,
-                                 capture_output=True, text=True, timeout=15)
+    metadata["runner_kind"] = args.runner_kind
+    if args.runner_kind == "proton":
+        version_file = runner.parent / "version"
         metadata["compatibility_runner_version"] = (
-            version.stdout.strip() or version.stderr.strip() or "unreported")
-    except (OSError, subprocess.SubprocessError) as error:
-        metadata["compatibility_runner_version"] = f"unavailable: {type(error).__name__}"
+            version_file.read_text(errors="replace")[:160].strip() if version_file.is_file() else "unreported")
+    else:
+        try:
+            version = subprocess.run([str(runner), "--version"], capture_output=True, text=True, timeout=15)
+            metadata["compatibility_runner_version"] = version.stdout.strip()[:160] or "unreported"
+        except (OSError, subprocess.SubprocessError):
+            metadata["compatibility_runner_version"] = "unreported"
 (run_dir / "metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
 archive = (args.output or run_dir.with_suffix(".zip")).resolve()
 archive.parent.mkdir(parents=True, exist_ok=True)
 with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as bundle:
-    for name in ("metadata.json", "stdout.log", "stderr.log"):
-        bundle.write(run_dir / name, name)
+    bundle.write(run_dir / "metadata.json", "metadata.json")
+    # Keep full logs locally. Driver output, arbitrary arguments and save paths
+    # can identify a user; share only recognized runtime diagnostics.
+    prefixes = ("[DOOM_TRANSITION]", "[DOOM_SCHEDULER]", "[TRAP]", "[ILLEGAL]",
+                "[HALT]", "[VIDEO] renderer", "[DOOM_VIDEO]", "[pacer]", "JSR stack mismatch")
+    for name in ("stdout.log", "stderr.log"):
+        with (run_dir / name).open(encoding="utf-8", errors="replace") as source:
+            lines = (line for line in source if line.startswith(prefixes)
+                     and "/" not in line and "\\" not in line)
+            bundle.writestr(name, "".join(lines))
 print(f"Diagnostic archive: {archive}")
 raise SystemExit(result.returncode)

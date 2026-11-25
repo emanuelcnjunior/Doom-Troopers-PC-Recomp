@@ -32,6 +32,10 @@ US ROM: **2 MiB** · CRC32 `11194414`. [Full ROM fingerprint](config/rom_identit
 
 </details>
 
+In the local development build, the **Game** tab offers **Classic** and **Enhanced**. Classic presents the original frame in 4:3 without filtering. Enhanced adds optional Scale2x. Select **Play** to save the profile.
+
+Enhanced also supports local OGG Vorbis, WAV and MP3 music and effects. [Audio mod setup and sequence IDs (Portuguese)](docs/modding.md)
+
 ## Controls
 
 | Action | Keyboard | PS4 controller (player 1) |

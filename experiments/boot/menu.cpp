@@ -32,7 +32,7 @@ struct Menu {
     std::string runtime_path;
     HANDLE file = INVALID_HANDLE_VALUE;
     unsigned mask{};
-    bool pt{}, exclusive_fullscreen{};
+    bool pt{}, exclusive_fullscreen{}, enhanced{}, enhanced_scale{}, audio_mods{}, linear{}, integer{}, vsync{true};
     int page{};
     SDL_GameController *controller{};
     const wchar_t *tr(const wchar_t *en, const wchar_t *br) const { return pt ? br : en; }
@@ -163,11 +163,51 @@ void cheat_list(Menu &m, int index) {
     EnableWindow(m.item(ID_TOGGLE), index != 6);
 }
 
+void load_profile(Menu &m) {
+    m.linear = read_ini(m.settings, L"video", L"linear_filter", L"0") == L"1";
+    m.integer = read_ini(m.launcher, section, L"integer_scale", L"0") == L"1";
+    m.vsync = read_ini(m.launcher, section, L"vsync", L"1") != L"0";
+    m.audio_mods = read_ini(m.launcher, section, L"audio_mods", L"0") == L"1";
+    auto mode = read_ini(m.launcher, section, L"profile", L"");
+    auto legacy = read_ini(m.launcher, section, L"scale2x", L"");
+    m.enhanced = mode == L"enhanced" || (mode.empty() && legacy == L"1");
+    m.enhanced_scale = read_ini(m.launcher, section, L"enhanced_scale2x",
+                                legacy.c_str()) == L"1";
+}
+
+void show_profile(Menu &m) {
+    CheckRadioButton(m.window, ID_CLASSIC, ID_ENHANCED, m.enhanced ? ID_ENHANCED : ID_CLASSIC);
+    CheckDlgButton(m.window, ID_SCALE, m.enhanced && m.enhanced_scale ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(m.window, ID_AUDIO_MODS, m.enhanced && m.audio_mods ? BST_CHECKED : BST_UNCHECKED);
+    EnableWindow(m.item(ID_AUDIO_MODS), m.enhanced);
+    CheckDlgButton(m.window, ID_LINEAR, m.enhanced && m.linear ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(m.window, ID_INTEGER, m.enhanced && m.integer ? BST_CHECKED : BST_UNCHECKED);
+    CheckDlgButton(m.window, ID_VSYNC, (!m.enhanced || m.vsync) ? BST_CHECKED : BST_UNCHECKED);
+    for (int id : {ID_LINEAR, ID_INTEGER, ID_VSYNC})
+        EnableWindow(m.item(id), m.enhanced);
+    EnableWindow(m.item(ID_SCALE), m.enhanced);
+}
+
+void apply_profile(const Menu &m) {
+    _putenv_s("DOOM_LINEAR", m.enhanced && m.linear ? "1" : "0");
+    _putenv_s("DOOM_INTEGER", m.enhanced && m.integer ? "1" : "0");
+    _putenv_s("DOOM_VSYNC", !m.enhanced || m.vsync ? "1" : "0");
+    _putenv_s("DOOM_AUDIO_MODS", m.enhanced && m.audio_mods ? "1" : "0");
+    _putenv_s("DOOM_CLASSIC", m.enhanced ? "0" : "1");
+    _putenv_s("DOOM_SCALE2X", m.enhanced && m.enhanced_scale ? "1" : "0");
+}
+
 void refresh(Menu &m) {
     m.text(ID_GAME, m.tr(L"Game", L"Jogo"));
     m.text(ID_CONTROLS, m.tr(L"Controls", L"Controles"));
     m.text(ID_ROM_LABEL, m.tr(L"Genesis / Mega Drive ROM", L"ROM do Mega Drive"));
     m.text(ID_LANG_LABEL, m.tr(L"Language", L"Idioma"));
+    m.text(ID_LINEAR, m.tr(L"Bilinear filtering", L"Filtro bilinear"));
+    m.text(ID_INTEGER, m.tr(L"Integer scaling (4:3)", L"Escala inteira (4:3)"));
+    m.text(ID_VSYNC, m.tr(L"Request VSync", L"Solicitar VSync"));
+    m.text(ID_AUDIO_MODS, m.tr(L"Use custom audio", L"Usar arquivos de som personalizados"));
+    m.text(ID_CLASSIC, m.tr(L"Classic", L"Clássico"));
+    m.text(ID_ENHANCED, m.tr(L"Enhanced", L"Aprimorado"));
     m.text(ID_SCALE, m.tr(L"Scale2x filter", L"Filtro Scale2x"));
     m.text(ID_DEFAULTS, m.tr(L"Restore defaults", L"Restaurar padrão"));
     m.text(ID_GAME_HEADING, m.tr(L"Game", L"Jogo"));
@@ -212,7 +252,7 @@ void page(Menu &m, int tab) {
         ShowWindow(m.item(id), tab == (id <= ID_SAVE_HINT ? 1 : 2) ? SW_SHOW : SW_HIDE);
     for (int id : {ID_DEFAULTS, ID_LOAD_HINT})
         ShowWindow(m.item(id), tab == 1 ? SW_SHOW : SW_HIDE);
-    for (int id : {ID_GAME_HEADING, ID_GAME_INFO})
+    for (int id : {ID_GAME_HEADING, ID_GAME_INFO, ID_CLASSIC, ID_ENHANCED, ID_AUDIO_MODS, ID_LINEAR, ID_INTEGER, ID_VSYNC})
         ShowWindow(m.item(id), tab == 0 ? SW_SHOW : SW_HIDE);
     for (int id = ID_GAME; id <= ID_CHEATS; ++id)
         InvalidateRect(m.item(id), nullptr, FALSE);
@@ -226,8 +266,8 @@ void init(Menu &m) {
     auto fs = read_ini(m.settings, L"video", L"fullscreen", L"1");
     m.exclusive_fullscreen = fs == L"2";
     CheckDlgButton(m.window, ID_FULL, fs == L"0" ? BST_UNCHECKED : BST_CHECKED);
-    CheckDlgButton(m.window, ID_SCALE,
-                   read_ini(m.launcher, section, L"scale2x", L"1") == L"0" ? BST_UNCHECKED : BST_CHECKED);
+    load_profile(m);
+    show_profile(m);
     m.mask = wcstoul(read_ini(m.launcher, section, L"cheats", L"0").c_str(), nullptr, 10) & ((1u << 30) - 1) &
              ~skip_levels;
     const wchar_t *buttons[] = {L"×", L"○", L"□", L"△"};
@@ -249,7 +289,7 @@ void init(Menu &m) {
             add_choice(m.item(ID_PAD0 + i), pad.c_str(), -1, true);
     }
     refresh(m);
-    page(m, 1);
+    page(m, 0);
 }
 
 void warn(Menu &m, const wchar_t *en, const wchar_t *pt) {
@@ -280,6 +320,12 @@ bool save(Menu &m) {
     bool scale = IsDlgButtonChecked(m.window, ID_SCALE) == BST_CHECKED;
     auto encoded = encode_path(m.rom);
     bool ok = !encoded.empty() && put(m.launcher, section, L"rom_utf8", encoded) &&
+              put(m.launcher, section, L"enhanced_scale2x", m.enhanced_scale ? L"1" : L"0") &&
+              put(m.settings, L"video", L"linear_filter", m.linear ? L"1" : L"0") &&
+              put(m.launcher, section, L"integer_scale", m.integer ? L"1" : L"0") &&
+              put(m.launcher, section, L"vsync", m.vsync ? L"1" : L"0") &&
+              put(m.launcher, section, L"audio_mods", m.audio_mods ? L"1" : L"0") &&
+              put(m.launcher, section, L"profile", m.enhanced ? L"enhanced" : L"classic") &&
               put(m.launcher, section, L"scale2x", scale ? L"1" : L"0") &&
               put(m.launcher, section, L"language", m.pt ? L"pt" : L"en") &&
               put(m.launcher, section, L"cheats", std::to_wstring(m.mask)) &&
@@ -293,7 +339,7 @@ bool save(Menu &m) {
              L"Falha ao salvar as preferências na pasta do jogo.");
         return false;
     }
-    _putenv_s("DOOM_SCALE2X", scale ? "1" : "0");
+    apply_profile(m);
     _putenv_s("DOOM_CHEAT_MASK", std::to_string(m.mask).c_str());
     _putenv_s("GENESIS_FORCE_INTERP", (m.mask & ~0x103fu) ? "1" : "0");
     _putenv_s("GENESIS_STRICT_JSR_STACK", "1");
@@ -393,7 +439,20 @@ INT_PTR CALLBACK dialog(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
     int id = LOWORD(wp), event = HIWORD(wp);
     if (id >= ID_GAME && id <= ID_CHEATS)
         page(*m, id - ID_GAME);
-    else if (id == ID_DEFAULTS) {
+    else if ((id == ID_CLASSIC || id == ID_ENHANCED) && event == BN_CLICKED) {
+        m->enhanced = id == ID_ENHANCED;
+        show_profile(*m);
+    } else if (id == ID_LINEAR && event == BN_CLICKED) {
+        m->linear = IsDlgButtonChecked(w, id) == BST_CHECKED;
+    } else if (id == ID_INTEGER && event == BN_CLICKED) {
+        m->integer = IsDlgButtonChecked(w, id) == BST_CHECKED;
+    } else if (id == ID_VSYNC && event == BN_CLICKED) {
+        m->vsync = IsDlgButtonChecked(w, id) == BST_CHECKED;
+    } else if (id == ID_AUDIO_MODS && event == BN_CLICKED) {
+        m->audio_mods = IsDlgButtonChecked(w, ID_AUDIO_MODS) == BST_CHECKED;
+    } else if (id == ID_SCALE && event == BN_CLICKED) {
+        m->enhanced_scale = IsDlgButtonChecked(w, ID_SCALE) == BST_CHECKED;
+    } else if (id == ID_DEFAULTS) {
         for (int i = 0; i < 3; ++i) {
             HWND key = m->item(ID_KEY0 + i);
             int count = (int)SendMessageW(key, CB_GETCOUNT, 0, 0);
@@ -435,16 +494,6 @@ INT_PTR CALLBACK dialog(HWND w, UINT msg, WPARAM wp, LPARAM lp) {
 } // namespace
 
 int main(int argc, char **argv) {
-    if (argc != 1 || getenv("GENESIS_NO_LAUNCHER") != nullptr) {
-        const char *value = getenv("DOOM_CHEAT_MASK");
-        if (value) {
-            char *end;
-            unsigned long mask = strtoul(value, &end, 10);
-            if (*value && !*end && mask < (1ul << 30) && (mask & skip_levels))
-                _putenv_s("DOOM_CHEAT_MASK", std::to_string(mask & ~skip_levels).c_str());
-        }
-        return doom_runtime_main(argc, argv);
-    }
     wchar_t path[2048];
     DWORD size = GetModuleFileNameW(nullptr, path, 2048);
     if (!size || size >= 2048)
@@ -454,6 +503,22 @@ int main(int argc, char **argv) {
     Menu menu;
     menu.settings = folder + L"settings.ini";
     menu.launcher = folder + L"launcher.ini";
+    if (argc != 1 || getenv("GENESIS_NO_LAUNCHER") != nullptr) {
+        load_profile(menu);
+        const char *override_scale = getenv("DOOM_SCALE2X");
+        std::string scale = override_scale ? override_scale : "";
+        apply_profile(menu);
+        if (!scale.empty())
+            _putenv_s("DOOM_SCALE2X", scale.c_str());
+        const char *value = getenv("DOOM_CHEAT_MASK");
+        if (value) {
+            char *end;
+            unsigned long mask = strtoul(value, &end, 10);
+            if (*value && !*end && mask < (1ul << 30) && (mask & skip_levels))
+                _putenv_s("DOOM_CHEAT_MASK", std::to_string(mask & ~skip_levels).c_str());
+        }
+        return doom_runtime_main(argc, argv);
+    }
     bool input = SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) == 0;
     INT_PTR result =
         DialogBoxParamW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(ID_MENU), nullptr, dialog, (LPARAM)&menu);

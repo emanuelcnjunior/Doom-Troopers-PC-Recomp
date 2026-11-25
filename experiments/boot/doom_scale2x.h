@@ -14,7 +14,7 @@ static SDL_Texture *doom_scale2x(SDL_Renderer *renderer, SDL_Texture **cache,
         *cache = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
                                    SDL_TEXTUREACCESS_STREAMING, 2 * w, 2 * h);
         if (!*cache) return NULL;
-        SDL_SetTextureScaleMode(*cache, SDL_ScaleModeLinear);
+        /* The new texture inherits the selected SDL sampling filter. */
     }
     void *buffer;
     int pitch;

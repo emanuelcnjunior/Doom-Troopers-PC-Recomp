@@ -57,6 +57,16 @@ execute_process(COMMAND git -C "${RECOMP_ROOT}" apply --reverse --check "${YM_TI
 if(NOT YM_TIMER_PATCH_STATUS EQUAL 0)
   message(FATAL_ERROR "The game needs the YM2612 timer A patch for audio. Prepare the pinned framework with tools/setup_framework.py.")
 endif()
+execute_process(COMMAND git -C "${RECOMP_ROOT}" apply --reverse --check
+  "${ROOT}/patches/framework-doom-audio.patch" RESULT_VARIABLE AUDIO_MOD_PATCH_STATUS ERROR_QUIET)
+if(NOT AUDIO_MOD_PATCH_STATUS EQUAL 0)
+  message(FATAL_ERROR "Missing Doom audio command and save-state hooks. Apply patches/framework-doom-audio.patch to the pinned framework.")
+endif()
+execute_process(COMMAND git -C "${RECOMP_ROOT}" apply --reverse --check
+  "${ROOT}/patches/framework-doom-scaling.patch" RESULT_VARIABLE SCALING_PATCH_STATUS ERROR_QUIET)
+if(NOT SCALING_PATCH_STATUS EQUAL 0)
+  message(FATAL_ERROR "Apply patches/framework-doom-scaling.patch to the pinned framework.")
+endif()
 set(GEN "${CMAKE_CURRENT_BINARY_DIR}/generated")
 set(GENERATED "${GEN}/doom_dispatch.c" "${GEN}/doom_layout.c" "${GEN}/doom_cheats.c" "${GEN}/doom_cheats.h")
 foreach(N RANGE 0 31)
@@ -74,10 +84,19 @@ add_custom_command(OUTPUT ${GENERATED}
     "${ROOT}/tools/generate_boot.py" "${ROOT}/tools/rom_tool.py" "${ROOT}/tools/cheat_tool.py"
   VERBATIM)
 genesisrecomp_runner_sources(SOURCES TRACE ON REVERSE_DEBUG OFF)
-add_executable(DoomBootProbe ${SOURCES} ${GENERATED} doom_spec.c doom.rc)
+add_executable(DoomBootProbe ${SOURCES} ${GENERATED} doom_spec.c doom_audio.cpp mod_manifest.cpp doom_audio_decode.c doom.rc)
 option(DOOM_INTEGRATED_MENU "Include the native Windows configuration menu" OFF)
 if(DOOM_INTEGRATED_MENU)
   set_source_files_properties("${RUNNER}/main.c" PROPERTIES COMPILE_DEFINITIONS "SDL_main=doom_runtime_main")
+  add_test(NAME mod_packages COMMAND "${Python3_EXECUTABLE}"
+    "${ROOT}/tests/check_mod_packages.py" "$<TARGET_FILE:DoomBootProbe>" "${DOOM_ROM}")
+  add_test(NAME audio_mods COMMAND "${Python3_EXECUTABLE}"
+    "${ROOT}/tests/check_audio_mods.py" "$<TARGET_FILE:DoomBootProbe>" "${DOOM_ROM}")
+  add_test(NAME gameplay_profiles COMMAND "${Python3_EXECUTABLE}"
+    "${ROOT}/tests/check_gameplay_profiles.py" "$<TARGET_FILE:DoomBootProbe>" "${DOOM_ROM}")
+  add_test(NAME integrated_profiles COMMAND "${Python3_EXECUTABLE}"
+    "${ROOT}/tests/check_profiles.py" "$<TARGET_FILE:DoomBootProbe>" "${DOOM_ROM}")
+  set_tests_properties(integrated_profiles PROPERTIES TIMEOUT 100)
   target_sources(DoomBootProbe PRIVATE menu.cpp menu_skin.cpp menu.rc)
   target_link_libraries(DoomBootProbe PRIVATE bcrypt crypt32 gdiplus shlwapi)
 endif()
@@ -85,11 +104,11 @@ target_include_directories(DoomBootProbe PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}" "
   "${RUNNER}/video" "${RUNNER}/external/ymfm/src" "${RUNNER}/external/superzazu"
   "${RUNNER}/external/clowncommon" "${RECOMP_ROOT}/recompiler/src"
   "${SDLROOT}/include")
-target_compile_definitions(DoomBootProbe PRIVATE DOOM_ENHANCED_VIDEO=1 INCLUDE_GENERATED_CODE=1
+target_compile_definitions(DoomBootProbe PRIVATE DOOM_AUDIO_MODS=1 DOOM_ENHANCED_VIDEO=1 INCLUDE_GENERATED_CODE=1
   ENABLE_RECOMPILED_CODE=1 OWN_BACKEND=1 GEN_ENABLE_TRACE=1
   DEFAULT_DEBUG_PORT=4490 RECOMP_LAUNCHER=0 GENESIS_HAS_RECOMP_NET=0)
 target_compile_options(DoomBootProbe PRIVATE /W3 /utf-8 /bigobj /wd4996)
-target_link_libraries(DoomBootProbe PRIVATE SDL2::SDL2main SDL2::SDL2 ws2_32 comdlg32)
+target_link_libraries(DoomBootProbe PRIVATE windowsapp SDL2::SDL2main SDL2::SDL2 ws2_32 comdlg32)
 genesisrecomp_runner_target(DoomBootProbe)
 add_test(NAME doom_title_audio COMMAND "${Python3_EXECUTABLE}"
   "${ROOT}/tests/check_title_audio.py" "$<TARGET_FILE:DoomBootProbe>" "${DOOM_ROM}")

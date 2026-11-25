@@ -4,6 +4,38 @@
 #include <stdio.h>
 #include "doom_scale2x.h"
 
+/* Read the final surface, including the borders outside SDL's logical viewport. */
+static int check_canvas(int width, int height, SDL_bool integer, SDL_Rect expected)
+{
+    SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, width, height, 32, SDL_PIXELFORMAT_ARGB8888);
+    SDL_Renderer *renderer = surface ? SDL_CreateSoftwareRenderer(surface) : NULL;
+    int ok = renderer && SDL_RenderSetLogicalSize(renderer, 320, 240) == 0 &&
+             SDL_RenderSetIntegerScale(renderer, integer) == 0;
+    if (ok) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_Rect canvas = { 0, 0, 320, 240 };
+        ok = SDL_RenderFillRect(renderer, &canvas) == 0;
+        SDL_RenderPresent(renderer);
+        for (int y = 0; ok && y < height; ++y) {
+            const uint32_t *row = (const uint32_t *)((const uint8_t *)surface->pixels + y * surface->pitch);
+            for (int x = 0; x < width; ++x) {
+                int inside = x >= expected.x && x < expected.x + expected.w &&
+                             y >= expected.y && y < expected.y + expected.h;
+                if ((row[x] & 0xffffff) != (inside ? 0xffffffu : 0u)) {
+                    fprintf(stderr, "Unexpected viewport pixel at %d,%d in %dx%d\n", x,y,width,height);
+                    ok = 0;
+                    break;
+                }
+            }
+        }
+    }
+    SDL_DestroyRenderer(renderer);
+    SDL_FreeSurface(surface);
+    return ok;
+}
+
 int main(void)
 {
     const uint32_t dark = 0xff000000u, light = 0xffffffffu;
@@ -40,5 +72,9 @@ done:
     SDL_DestroyTexture(texture);
     SDL_DestroyRenderer(renderer);
     SDL_FreeSurface(surface);
+    if (!check_canvas(800, 480, SDL_FALSE, (SDL_Rect){80, 0, 640, 480}) ||
+        !check_canvas(640, 600, SDL_FALSE, (SDL_Rect){0, 60, 640, 480}) ||
+        !check_canvas(800, 600, SDL_TRUE, (SDL_Rect){80, 60, 640, 480}))
+        return 1;
     return result;
 }

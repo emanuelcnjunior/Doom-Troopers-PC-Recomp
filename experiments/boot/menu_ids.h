@@ -32,3 +32,9 @@
 #define ID_GAME_HEADING 231
 #define ID_GAME_INFO 232
 #define ID_COVER 233
+#define ID_CLASSIC 234
+#define ID_ENHANCED 235
+#define ID_AUDIO_MODS 236
+#define ID_LINEAR 237
+#define ID_INTEGER 238
+#define ID_VSYNC 239

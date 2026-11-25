@@ -41,6 +41,16 @@ def notices(repo, folder):
     mit = pinned(repo / "external/rbengine", LOCK["submodules"]["external/rbengine"], "LICENSE").decode()
     parts.extend(["ShadowVerifier and color-science core", "Copyright Jrickey",
                   mit[mit.index("Permission is hereby granted") :]])
+    codecs = Path(__file__).resolve().parents[1] / "experiments/boot/audio_codecs"
+    for filename, copyright_line in (("dr_mp3.h", "Copyright 2023 David Reid"),
+                                     ("stb_vorbis.c", "Copyright (c) 2017 Sean Barrett")):
+        header = (codecs / filename).read_text(encoding="utf-8")
+        start = header.rindex(copyright_line)
+        end = header.index("SOFTWARE.", start) + len("SOFTWARE.")
+        parts.extend([filename, header[start:end]])
+        if filename == "dr_mp3.h":
+            start = header.rindex("https://github.com/lieff/minimp3")
+            parts.append(header[start:header.index("*/", start)].strip())
     parts.extend(["Microsoft Visual C++ Runtime (Microsoft Corporation)",
                   "https://learn.microsoft.com/visualstudio/releases/2022/redistribution"])
     (folder / "LICENSES.txt").write_bytes("\n\n".join(parts).encode("utf-8"))

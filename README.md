@@ -32,6 +32,10 @@ ROM americana: **2 MiB** · CRC32 `11194414`. [Identificação completa da ROM](
 
 </details>
 
+Na compilação local de desenvolvimento, a aba **Jogo** permite escolher **Clássico** ou **Aprimorado**. O primeiro usa a apresentação 4:3 sem filtro. O segundo permite ligar o Scale2x. Clique em **Jogar** para salvar o perfil.
+
+O perfil Aprimorado também aceita músicas e efeitos locais em OGG Vorbis, WAV e MP3. [Instalação e IDs de áudio](docs/modding.md)
+
 ## Controles
 
 | Ação | Teclado | Controle de PS4 (jogador 1) |

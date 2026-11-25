@@ -1,0 +1,52 @@
+diff --git a/runner/video/genesis_bus.c b/runner/video/genesis_bus.c
+index c7d3a9c..1cfe3da 100644
+--- a/runner/video/genesis_bus.c
++++ b/runner/video/genesis_bus.c
+@@ -427,6 +444,12 @@ void gbus_write16(GenesisBus *b, uint32_t a, uint16_t v)
+         return;
+     }
+     if (a >= 0xA10000u && a < 0xA10020u) { io_write(b, a, (uint8_t)v); return; }
++#ifdef DOOM_AUDIO_MODS
++    if (a == 0xA11100u) {
++        extern void doom_audio_bus_request(uint8_t *ram, int request);
++        doom_audio_bus_request(b->z80_ram, (v & 0x0100) != 0);
++    }
++#endif
+     if (a == 0xA11100u) { b->z80_busreq = (v & 0x0100) ? 1 : 0;
+         snd_trace_busreq("REQ", b->z80_busreq); return; }                /* [SND-TRACE] */
+     if (a == 0xA11200u) { int o = b->z80_reset_off; b->z80_reset_off = (v & 0x0100) ? 1 : 0;
+--- a/runner/main.c
++++ b/runner/main.c
+@@ -1135,6 +1135,10 @@
+     ok = ok && machine_save_state(sf);
+     ok = ok && ym2612_save_state(sf);
+     ok = ok && psg_save_state(sf);
++#ifdef DOOM_AUDIO_MODS
++    extern int doom_audio_save(FILE *);
++    ok = ok && doom_audio_save(sf);
++#endif
+     ok = ok && !ferror(sf);
+     fclose(sf);
+ 
+@@ -1194,6 +1198,10 @@
+     ok = ok && machine_load_state(sf);
+     ok = ok && ym2612_load_state(sf);
+     ok = ok && psg_load_state(sf);
++#ifdef DOOM_AUDIO_MODS
++    extern int doom_audio_read(FILE *, uint8_t *);
++    ok = ok && doom_audio_read(sf, g_machine.bus.z80_ram);
++#endif
+     ok = ok && fgetc(sf) == EOF && !ferror(sf);
+     fclose(sf);
+ 
+@@ -1230,6 +1238,10 @@
+         if (g_game_spec.on_state_loaded) g_game_spec.on_state_loaded();
+         audio_discard_playback();
+     }
++#ifdef DOOM_AUDIO_MODS
++    extern void doom_audio_resume(void);
++    if (ok) doom_audio_resume();
++#endif
+     return ok;
+ }
+ 

@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "name": "Title tone",
+  "version": "1.0",
+  "author": "Doom Troopers PC Recomp",
+  "compatibility": "doom-troopers-usa:11194414/audio-v1",
+  "files": [
+    {"type": "music", "id": "05", "path": "audio/music/05.ogg"}
+  ]
+}

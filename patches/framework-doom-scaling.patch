@@ -1,0 +1,69 @@
+--- a/runner/main.c
++++ b/runner/main.c
+@@ -478,6 +478,10 @@
+     return s_screen_height;
+ }
+ 
++#ifdef DOOM_ENHANCED_VIDEO
++static int doom_integer_scale;
++#endif
++
+ static void update_render_logical_size(SDL_Renderer *renderer)
+ {
+     static SDL_Renderer *s_last_renderer = NULL;
+@@ -503,6 +507,16 @@
+ #endif
+     }
+ 
++#ifdef DOOM_ENHANCED_VIDEO
++    if (doom_integer_scale) {
++        int output_w, output_h;
++        if (SDL_GetRendererOutputSize(renderer, &output_w, &output_h) == 0) {
++            SDL_bool fits = output_w >= w && output_h >= h ? SDL_TRUE : SDL_FALSE;
++            if (SDL_RenderGetIntegerScale(renderer) != fits)
++                SDL_RenderSetIntegerScale(renderer, fits);
++        }
++    }
++#endif
+     if (renderer != s_last_renderer || w != s_last_w || h != s_last_h) {
+         if (SDL_RenderSetLogicalSize(renderer, w, h) == 0) {
+             s_last_renderer = renderer;
+@@ -2738,7 +2752,14 @@
+             (custom_video_on || ws_armed()) ? "16:9 widescreen" : "4:3");
+ 
+     /* Texture scaling filter (settings.ini / launcher): nearest vs bilinear. */
+-    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, g_app_config.linear_filter ? "1" : "0");
++    int presentation_linear = g_app_config.linear_filter;
++#ifdef DOOM_ENHANCED_VIDEO
++    const char *linear = getenv("DOOM_LINEAR");
++    if (linear) presentation_linear = strcmp(linear, "1") == 0;
++    const char *integer = getenv("DOOM_INTEGER");
++    doom_integer_scale = integer && strcmp(integer, "1") == 0;
++#endif
++    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, presentation_linear ? "1" : "0");
+ 
+ #ifdef _WIN32
+     /* SDL's D3D9 copy presentation path produces uneven display intervals on
+@@ -2756,6 +2777,10 @@
+     Uint32 renderer_flags = SDL_RENDERER_ACCELERATED;
+     if (!benchmark_frames && !runtime_uncapped)
+         renderer_flags |= SDL_RENDERER_PRESENTVSYNC;
++#ifdef DOOM_ENHANCED_VIDEO
++    const char *sync = getenv("DOOM_VSYNC");
++    if (sync && strcmp(sync, "0") == 0) renderer_flags &= ~SDL_RENDERER_PRESENTVSYNC;
++#endif
+     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, renderer_flags);
+     if (!renderer) {
+         renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+@@ -2797,6 +2822,11 @@
+             s_frame_texture_filtered = mode != SDL_ScaleModeNearest;
+         else
+             s_frame_texture_filtered = 1;
++#ifdef DOOM_ENHANCED_VIDEO
++        fprintf(stderr, "[DOOM_VIDEO] bilinear=%d integer=%d vsync_requested=%d\n",
++                s_frame_texture_filtered, SDL_RenderGetIntegerScale(renderer),
++                (renderer_flags & SDL_RENDERER_PRESENTVSYNC) != 0);
++#endif
+     }
+     /* Created lazily at the exact peer-view dimensions. An isolated texture
+      * prevents linear filtering from sampling across the stacked split edge. */

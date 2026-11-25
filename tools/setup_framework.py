@@ -24,6 +24,8 @@ patches = [
     (checkout, root / 'patches/framework-ym2612-timer-a.patch'),
     (checkout, root / 'patches/framework-launcher-runtime.patch'),
     (checkout, root / 'patches/framework-doom-video.patch'),
+    (checkout, root / 'patches/framework-doom-audio.patch'),
+    (checkout, root / 'patches/framework-doom-scaling.patch'),
     (checkout / 'external/m68k-recomp-core', root / 'patches/m68k-core-doom-trap.patch'),
 ]
 for target, patch in patches:

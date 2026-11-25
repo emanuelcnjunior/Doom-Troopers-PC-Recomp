@@ -102,6 +102,7 @@ the installed Proton script (adjust the Proton directory if needed):
 ```bash
 export STEAM_COMPAT_CLIENT_INSTALL_PATH="$HOME/.local/share/Steam"
 export STEAM_COMPAT_DATA_PATH="$PWD/local/doom-transition-prefix"
+mkdir -p "$STEAM_COMPAT_DATA_PATH"
 python3 tools/run_transition_diagnostic.py \
   --rom "/path/Doom Troopers (USA).md" \
   --exe "build/doom-probe/Release/DoomBootProbe.exe" \
@@ -159,3 +160,38 @@ for retaining the isolated interpreter correction and its synthetic regression.
   completed level 1, passed the results transition and reached interactive
   level 2. Screenshots captured both the pre-fix corruption and the corrected
   level-2 gameplay.
+
+## Revalidação do build local em 25/11/2026
+
+Executável Windows x64 SHA-256
+`28e09b4bdf98708e0b74cddb152f229ce8ff84fec879a94912c7d55d033f47f8`.
+A rota automatizada chegou ao quadro 4.402 em ambos os perfis. Uma tentativa
+adicional, com energia/vidas de P1, avanço para a direita, tiro e saltos,
+encerrou pelo comando do roteiro no quadro 16.401. A captura final ainda
+mostra a selva. A tela de resultados e o controle na fase 2 seguem pendentes
+para este hash. O passe manual anterior pertence ao hash registrado acima.
+
+### Teste externo em Bazzite
+
+Use uma pasta de teste gravável com o executável deste hash e suas DLLs.
+Guarde os saves pessoais separadamente. Use Python 3 e o coletor em
+`tools/run_transition_diagnostic.py`, junto de `tools/rom_tool.py` e
+`config/rom_identity.json`. No exemplo Proton acima, ajuste os caminhos ao
+Steam, ao executável e à sua ROM. O prefixo novo começa sem as preferências
+anteriores de Wine. O jogo grava os próprios INIs ao lado do executável.
+Para Wine, use os mesmos argumentos de ROM e EXE com
+`--runner "$(command -v wine)" --runner-kind wine`. O acesso à ROM pressupõe
+o mapeamento padrão Z: do Wine para a raiz Linux.
+
+- [ ] Anotar versão do Bazzite, Wine/Proton, GPU e driver, perfil, filtro,
+  janela/tela cheia, áudio e cheats. Começar com Classic e mods desligados.
+- [ ] Terminar a primeira fase desde o início e aguardar a tela de resultados.
+- [ ] Confirmar os resultados, movimentar e atirar na segunda fase.
+- [ ] Repetir com a configuração original do relato, se conhecida.
+- [ ] Informar o último passo concluído e anexar o ZIP gerado pelo coletor.
+
+Os logs brutos ficam em `local/level-transition-*/`. O ZIP inclui metadados
+e linhas selecionadas de transição, CPU, renderer e temporização. O jogador
+pode revisar o ZIP antes de compartilhá-lo. No Windows, a geração e o conteúdo
+do ZIP foram conferidos com 120 quadros. A execução do coletor em Wine/Proton
+ainda requer o teste externo.
